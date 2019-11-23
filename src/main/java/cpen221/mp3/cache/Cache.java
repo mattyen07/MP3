@@ -1,5 +1,9 @@
 package cpen221.mp3.cache;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+
 public class Cache<T extends Cacheable> {
 
     /* the default cache size is 32 objects */
@@ -7,6 +11,11 @@ public class Cache<T extends Cacheable> {
 
     /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
+
+    private final int capacity;
+    private Map<T, Long> cacheMap;
+
+
 
     /* TODO: Implement this datatype */
 
@@ -19,8 +28,13 @@ public class Cache<T extends Cacheable> {
      * @param timeout  the duration an object should be in the cache before it times out
      */
     public Cache(int capacity, int timeout) {
-        // TODO: implement this constructor
+        this.capacity = capacity;
+        this.cacheMap = new HashMap<>();
+
+        //need thread for timeouts here
+
     }
+
 
     /**
      * Create a cache with default capacity and timeout values.
@@ -34,8 +48,28 @@ public class Cache<T extends Cacheable> {
      * If the cache is full then remove the least recently accessed object to
      * make room for the new object.
      */
-    boolean put(T t) {
-        // TODO: implement this method
+    public boolean put(T t) {
+        if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
+            this.cacheMap.put(t, System.currentTimeMillis());
+            return true;
+        }
+        if (this.cacheMap.size() == this.capacity && !this.cacheMap.containsKey(t) ) {
+            long time = System.currentTimeMillis();
+            long maxTime = 0;
+            T removeObject = t;
+
+            for (T key: this.cacheMap.keySet()) {
+                if (time - this.cacheMap.get(key) > maxTime) {
+                    removeObject = key;
+                    maxTime = time - this.cacheMap.get(key);
+                }
+            }
+
+            this.cacheMap.remove(removeObject);
+            this.cacheMap.put(t, time);
+            return true;
+        }
+
         return false;
     }
 
@@ -43,11 +77,21 @@ public class Cache<T extends Cacheable> {
      * @param id the identifier of the object to be retrieved
      * @return the object that matches the identifier from the cache
      */
-    T get(String id) {
-        /* TODO: change this */
+    public T get(String id) {
+
         /* Do not return null. Throw a suitable checked exception when an object
             is not in the cache. */
-        return null;
+        try {
+            for (T object : this.cacheMap.keySet()) {
+                if (object.id().equals(id)) {
+                    return object;
+                }
+            }
+            throw new NotFoundException("ID not found");
+        } catch(NotFoundException e){
+
+            return null; //need to change this
+        }
     }
 
     /**
@@ -58,8 +102,14 @@ public class Cache<T extends Cacheable> {
      * @param id the identifier of the object to "touch"
      * @return true if successful and false otherwise
      */
-    boolean touch(String id) {
-        /* TODO: Implement this method */
+    public boolean touch(String id) {
+        for (T object : this.cacheMap.keySet()) {
+            if (object.id().equals(id)) {
+                this.cacheMap.replace(object, System.currentTimeMillis());
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -71,8 +121,11 @@ public class Cache<T extends Cacheable> {
      * @param t the object to update
      * @return true if successful and false otherwise
      */
-    boolean update(T t) {
-        /* TODO: implement this method */
+    public boolean update(T t) {
+        if (this.cacheMap.containsKey(t)) {
+            this.cacheMap.replace(t, System.currentTimeMillis());
+            return true;
+        }
         return false;
     }
 
