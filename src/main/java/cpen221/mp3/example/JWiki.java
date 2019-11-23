@@ -1,6 +1,7 @@
 package cpen221.mp3.example;
 
 import fastily.jwiki.core.Wiki;
+import fastily.jwiki.core.MQuery;
 import fastily.jwiki.dwrap.Revision;
 
 import java.util.List;
