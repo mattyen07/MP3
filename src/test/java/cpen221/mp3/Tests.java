@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -41,8 +41,9 @@ public class Tests {
 
         answer.add("Barack Obama");
         answer.addAll(wiki.getLinksOnPage("Barack Obama"));
+        Collections.sort(answer);
 
-        assertEquals(answer.size(), wm.getConnectedPages("Barack Obama", 1).size());
+        assertEquals(answer, wm.getConnectedPages("Barack Obama", 1));
     }
     @Test
     public void getConnectedPagesTest3() {
@@ -58,7 +59,8 @@ public class Tests {
         }
 
         List<String> answerList = new ArrayList<>(answer);
+        Collections.sort(answerList);
 
-        assertEquals(answerList.size(), wm.getConnectedPages("Galojan", 2).size());
+        assertEquals(answerList, wm.getConnectedPages("Galojan", 2));
     }
 }

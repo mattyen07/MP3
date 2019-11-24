@@ -1,8 +1,10 @@
 package cpen221.mp3.cache;
 
+
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.HashSet;
 
 public class Cache<T extends Cacheable> {
 
@@ -13,9 +15,8 @@ public class Cache<T extends Cacheable> {
     public static final int DTIMEOUT = 3600;
 
     private final int capacity;
+    private final int timeout;
     private Map<T, Long> cacheMap;
-
-
 
     /* TODO: Implement this datatype */
 
@@ -28,12 +29,16 @@ public class Cache<T extends Cacheable> {
      * @param timeout  the duration an object should be in the cache before it times out
      */
     public Cache(int capacity, int timeout) {
+
         this.capacity = capacity;
         this.cacheMap = new HashMap<>();
+        this.timeout = timeout;
 
-        //need thread for timeouts here
+        Thread expiryThread = new MyThread<>(timeout, this.cacheMap);
+        expiryThread.start();
 
     }
+
 
 
     /**
