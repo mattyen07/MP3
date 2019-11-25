@@ -4,12 +4,13 @@ package cpen221.mp3.cache;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.time.LocalDateTime;
 
-public class MyThread<T extends Cacheable> extends Thread{
+public class MyThread<T extends Cacheable> implements Runnable{
     private final int timeoutRun;
-    private final Map<T, Long> cacheMap;
+    private final Map<T, Integer> cacheMap;
 
-    public MyThread(int timeout, Map<T, Long> map) {
+    public MyThread(int timeout, Map<T, Integer> map) {
         this.timeoutRun = timeout;
         this.cacheMap = map;
 
@@ -26,7 +27,7 @@ public class MyThread<T extends Cacheable> extends Thread{
                 }
 
                 for (T object : copyMap) {
-                    if (System.currentTimeMillis() - this.cacheMap.get(object) > (this.timeoutRun*1000)) {
+                    if (LocalDateTime.now().getSecond() - this.cacheMap.get(object) >= this.timeoutRun) {
                         this.cacheMap.remove(object);
                     }
                 }

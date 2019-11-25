@@ -7,9 +7,15 @@ public class CacheObject implements Cacheable {
     private String id;
     private String text;
 
-    public CacheObject (String id, Wiki wiki) {
+    public CacheObject (String id) {
         this.id = id;
-        this.text = wiki.getPageText(id);
+        if (id.equals("")) {
+            this.text = "";
+        } else {
+            Wiki wiki = new Wiki("en.wikipedia.org");
+            this.text = wiki.getPageText(id);
+        }
+
     }
 
     public String id() {

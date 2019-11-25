@@ -1,10 +1,9 @@
 package cpen221.mp3.cache;
 
 
+import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Cache<T extends Cacheable> {
 
@@ -15,8 +14,7 @@ public class Cache<T extends Cacheable> {
     public static final int DTIMEOUT = 3600;
 
     private final int capacity;
-    private final int timeout;
-    private Map<T, Long> cacheMap;
+    private Map<T, Integer> cacheMap;
 
     /* TODO: Implement this datatype */
 
@@ -31,12 +29,11 @@ public class Cache<T extends Cacheable> {
     public Cache(int capacity, int timeout) {
 
         this.capacity = capacity;
-        this.cacheMap = new HashMap<>();
-        this.timeout = timeout;
+        this.cacheMap = new ConcurrentHashMap<>();
 
-        Thread expiryThread = new MyThread<>(timeout, this.cacheMap);
+        Runnable expiry = new MyThread<>(timeout, this.cacheMap);
+        Thread expiryThread = new Thread(expiry);
         expiryThread.start();
-
     }
 
 
@@ -55,12 +52,12 @@ public class Cache<T extends Cacheable> {
      */
     public boolean put(T t) {
         if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
-            this.cacheMap.put(t, System.currentTimeMillis());
+            this.cacheMap.put(t, LocalDateTime.now().getSecond());
             return true;
         }
         if (this.cacheMap.size() == this.capacity && !this.cacheMap.containsKey(t) ) {
-            long time = System.currentTimeMillis();
-            long maxTime = 0;
+            int time = LocalDateTime.now().getSecond();
+            int maxTime = 0;
             T removeObject = t;
 
             for (T key: this.cacheMap.keySet()) {
@@ -94,8 +91,7 @@ public class Cache<T extends Cacheable> {
             }
             throw new NotFoundException("ID not found");
         } catch(NotFoundException e){
-
-            return null; //need to change this
+            return(T) new CacheObject("");
         }
     }
 
@@ -110,7 +106,7 @@ public class Cache<T extends Cacheable> {
     public boolean touch(String id) {
         for (T object : this.cacheMap.keySet()) {
             if (object.id().equals(id)) {
-                this.cacheMap.replace(object, System.currentTimeMillis());
+                this.cacheMap.replace(object, LocalDateTime.now().getSecond());
                 return true;
             }
         }
@@ -128,7 +124,7 @@ public class Cache<T extends Cacheable> {
      */
     public boolean update(T t) {
         if (this.cacheMap.containsKey(t)) {
-            this.cacheMap.replace(t, System.currentTimeMillis());
+            this.cacheMap.replace(t, LocalDateTime.now().getSecond());
             return true;
         }
         return false;
