@@ -207,4 +207,88 @@ public class Tests {
 
         assertEquals(answer, wm.trending(3));
     }
+
+    @Test
+    public void peakLoad1() {
+        WikiMediator wm = new WikiMediator();
+
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("china");
+        wm.getPage("hockey");
+        wm.simpleSearch("soccer", 3);
+
+        assertEquals(10, wm.peakLoad30s());
+    }
+
+    @Test
+    public void peakLoad2() {
+        WikiMediator wm = new WikiMediator();
+        long time = System.currentTimeMillis();
+
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        while(System.currentTimeMillis() < (time + 30*1000)) {
+
+        }
+        wm.getPage("china");
+        wm.getPage("hockey");
+        wm.simpleSearch("soccer", 3);
+
+        assertEquals(8, wm.peakLoad30s());
+    }
+
+    @Test
+    public void peakLoad3() {
+        WikiMediator wm = new WikiMediator();
+        long time = System.currentTimeMillis();
+
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        while(System.currentTimeMillis() < (time + 31*1000)) {
+
+        }
+        wm.getPage("china");
+        wm.getPage("hockey");
+        wm.simpleSearch("soccer", 3);
+
+        assertEquals(6, wm.peakLoad30s());
+    }
+
+    @Test
+    public void peakLoad4() {
+        WikiMediator wm = new WikiMediator();
+        long time = System.currentTimeMillis();
+
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("china");
+        wm.getPage("hockey");
+        while(System.currentTimeMillis() < (time + 40*1000)) {
+
+        }
+        wm.simpleSearch("soccer", 3);
+
+        assertEquals(9, wm.peakLoad30s());
+    }
 }

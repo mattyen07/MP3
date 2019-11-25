@@ -42,6 +42,7 @@ public class WikiMediator {
         this.timeMap = new ConcurrentHashMap<>();
         this.requestMap = new ConcurrentHashMap<>();
         this.cache = new Cache<>(256,3600);
+        this.startTime = LocalDateTime.now();
 
         this.requestMap.put("search", new ArrayList<LocalDateTime>());
         this.requestMap.put("getPage", new ArrayList<LocalDateTime>());
@@ -49,7 +50,6 @@ public class WikiMediator {
         this.requestMap.put("zeitgeist", new ArrayList<LocalDateTime>());
         this.requestMap.put("trending", new ArrayList<LocalDateTime>());
         this.requestMap.put("peakLoad", new ArrayList<LocalDateTime>());
-        this.startTime = LocalDateTime.now();
     }
 
     public List<String> simpleSearch(String query, int limit) {
@@ -220,24 +220,23 @@ public class WikiMediator {
         List<LocalDateTime> requestDates = this.requestMap.get("peakLoad");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("peakLoad", requestDates);
-        int startingTime = startTime.getSecond();
-        int endTime = LocalDateTime.now().getSecond();
+        LocalDateTime startingTime = this.startTime;
+        LocalDateTime endTime = LocalDateTime.now();
         int maxLoad = 0;
         List<Integer> intervalRequestsList = new ArrayList<>();
 
-        while (startingTime <= endTime - 30) {
+        while (startingTime.isBefore(endTime)) {
             int intervalRequests = 0;
-            int intervalTime = startingTime + 30;
+            LocalDateTime intervalTime = startingTime.plusSeconds(30);
             for (String request : this.requestMap.keySet()) {
-                for (LocalDateTime times : this.requestMap.get(request)) {
-                    int seconds = times.getSecond();
-                    if (seconds >= startingTime && seconds < intervalTime) {
+                for (LocalDateTime time : this.requestMap.get(request)) {
+                    if (time.isBefore(intervalTime) && time.isAfter(startingTime)) {
                         intervalRequests++;
                     }
                 }
             }
             intervalRequestsList.add(intervalRequests);
-            startingTime++;
+            startingTime = startingTime.plusSeconds(1);
         }
 
         for (int intervalLoads : intervalRequestsList) {
