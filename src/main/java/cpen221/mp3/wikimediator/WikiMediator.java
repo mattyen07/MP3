@@ -61,14 +61,14 @@ public class WikiMediator {
             popularityMap.put(query, 1);
         }
 
-        if(timeMap.containsKey(query)) {
+        if(!timeMap.containsKey(query)) {
             ArrayList<LocalDateTime> timeList = new ArrayList<>();
             timeList.add(LocalDateTime.now());
-            timeMap.replace(query, timeList);
+            timeMap.put(query, timeList);
         } else {
             List<LocalDateTime> timeList = timeMap.get(query);
             timeList.add(LocalDateTime.now());
-            timeMap.put(query, timeList);
+            timeMap.replace(query, timeList);
         }
         List<LocalDateTime> requestDates = this.requestMap.get("search");
         requestDates.add(LocalDateTime.now());
@@ -86,14 +86,14 @@ public class WikiMediator {
             popularityMap.put(pageTitle, 1);
         }
 
-        if(timeMap.containsKey(pageTitle)) {
+        if(!timeMap.containsKey(pageTitle)) {
             ArrayList<LocalDateTime> timeList = new ArrayList<>();
             timeList.add(LocalDateTime.now());
-            timeMap.replace(pageTitle, timeList);
+            timeMap.put(pageTitle, timeList);
         } else {
             List<LocalDateTime> timeList = timeMap.get(pageTitle);
             timeList.add(LocalDateTime.now());
-            timeMap.put(pageTitle, timeList);
+            timeMap.replace(pageTitle, timeList);
         }
 
         CacheObject co = (CacheObject) this.cache.get(pageTitle);
@@ -168,6 +168,7 @@ public class WikiMediator {
             mostCommon.add(mostOccurringSearch);
         }
 
+        Collections.reverse(mostCommon);
         List<LocalDateTime> requestDates = this.requestMap.get("zeitgeist");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("zeitgeist", requestDates);
@@ -176,14 +177,15 @@ public class WikiMediator {
 
     public List<String> trending(int limit) {
         List<String> trendingList = new ArrayList<>();
-        int currentTime = LocalDateTime.now().getSecond();
+        LocalDateTime currentTime = LocalDateTime.now();
         Map<String, Integer> frequencyList = new ConcurrentHashMap<>();
 
         for (String request : this.timeMap.keySet()) {
             List<LocalDateTime> requestList= this.timeMap.get(request);
             int count = 0;
             for (LocalDateTime time : requestList) {
-                if (time.getSecond() - currentTime < 30) {
+                LocalDateTime compareTime = currentTime.minusSeconds(30);
+                if (time.isAfter(compareTime)) {
                     count++;
                 }
             }
@@ -207,6 +209,7 @@ public class WikiMediator {
             trendingList.add(frequencyString);
         }
 
+        Collections.reverse(trendingList);
         List<LocalDateTime> requestDates = this.requestMap.get("trending");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("trending", requestDates);
