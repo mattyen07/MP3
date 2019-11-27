@@ -14,9 +14,7 @@ public class Cache<T extends Cacheable> {
     public static final int DTIMEOUT = 3600;
 
     private final int capacity;
-    private Map<T, Integer> cacheMap;
-
-    /* TODO: Implement this datatype */
+    private Map<T, LocalDateTime> cacheMap;
 
     /**
      * Create a cache with a fixed capacity and a timeout value.
@@ -52,18 +50,18 @@ public class Cache<T extends Cacheable> {
      */
     public boolean put(T t) {
         if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
-            this.cacheMap.put(t, LocalDateTime.now().getSecond());
+            this.cacheMap.put(t, LocalDateTime.now());
             return true;
         }
         if (this.cacheMap.size() == this.capacity && !this.cacheMap.containsKey(t) ) {
-            int time = LocalDateTime.now().getSecond();
-            int maxTime = 0;
+            LocalDateTime time = LocalDateTime.now();
+            LocalDateTime maxTime = LocalDateTime.now();
             T removeObject = t;
 
             for (T key: this.cacheMap.keySet()) {
-                if (time - this.cacheMap.get(key) > maxTime) {
+                if (this.cacheMap.get(key).isBefore(maxTime)) {
                     removeObject = key;
-                    maxTime = time - this.cacheMap.get(key);
+                    maxTime = this.cacheMap.get(key);
                 }
             }
 
@@ -106,7 +104,7 @@ public class Cache<T extends Cacheable> {
     public boolean touch(String id) {
         for (T object : this.cacheMap.keySet()) {
             if (object.id().equals(id)) {
-                this.cacheMap.replace(object, LocalDateTime.now().getSecond());
+                this.cacheMap.replace(object, LocalDateTime.now());
                 return true;
             }
         }
@@ -124,7 +122,7 @@ public class Cache<T extends Cacheable> {
      */
     public boolean update(T t) {
         if (this.cacheMap.containsKey(t)) {
-            this.cacheMap.replace(t, LocalDateTime.now().getSecond());
+            this.cacheMap.replace(t, LocalDateTime.now());
             return true;
         }
         return false;

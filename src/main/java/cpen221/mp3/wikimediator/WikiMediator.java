@@ -17,8 +17,7 @@ import fastily.jwiki.core.Wiki;
 
 public class WikiMediator {
 
-    /* TODO: Implement this datatype
-
+    /*
         You must implement the methods with the exact signatures
         as provided in the statement for this mini-project.
 
@@ -26,7 +25,6 @@ public class WikiMediator {
         do not plan to implement. You should provide skeleton implementation
         for those methods, and the skeleton implementation could return
         values like null.
-
      */
     private Wiki wiki;
     private Cache cache;
@@ -44,12 +42,12 @@ public class WikiMediator {
         this.cache = new Cache<>(256,3600);
         this.startTime = LocalDateTime.now();
 
-        this.requestMap.put("search", new ArrayList<LocalDateTime>());
-        this.requestMap.put("getPage", new ArrayList<LocalDateTime>());
-        this.requestMap.put("connectedPages", new ArrayList<LocalDateTime>());
-        this.requestMap.put("zeitgeist", new ArrayList<LocalDateTime>());
-        this.requestMap.put("trending", new ArrayList<LocalDateTime>());
-        this.requestMap.put("peakLoad", new ArrayList<LocalDateTime>());
+        this.requestMap.put("search", new ArrayList<>());
+        this.requestMap.put("getPage", new ArrayList<>());
+        this.requestMap.put("connectedPages", new ArrayList<>());
+        this.requestMap.put("zeitgeist", new ArrayList<>());
+        this.requestMap.put("trending", new ArrayList<>());
+        this.requestMap.put("peakLoad", new ArrayList<>());
     }
 
     public List<String> simpleSearch(String query, int limit) {
@@ -168,7 +166,6 @@ public class WikiMediator {
             mostCommon.add(mostOccurringSearch);
         }
 
-        Collections.reverse(mostCommon);
         List<LocalDateTime> requestDates = this.requestMap.get("zeitgeist");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("zeitgeist", requestDates);
@@ -209,7 +206,6 @@ public class WikiMediator {
             trendingList.add(frequencyString);
         }
 
-        Collections.reverse(trendingList);
         List<LocalDateTime> requestDates = this.requestMap.get("trending");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("trending", requestDates);
@@ -221,9 +217,16 @@ public class WikiMediator {
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("peakLoad", requestDates);
         LocalDateTime startingTime = this.startTime;
-        LocalDateTime endTime = LocalDateTime.now();
+        LocalDateTime endTime = LocalDateTime.now().minusSeconds(29);
         int maxLoad = 0;
         List<Integer> intervalRequestsList = new ArrayList<>();
+
+        if (endTime.isBefore(startingTime)) {
+            for (String request : this.requestMap.keySet()) {
+                maxLoad += this.requestMap.get(request).size();
+            }
+            return maxLoad;
+        }
 
         while (startingTime.isBefore(endTime)) {
             int intervalRequests = 0;

@@ -1,6 +1,5 @@
 package cpen221.mp3;
 
-import cpen221.mp3.cache.CacheObject;
 import cpen221.mp3.wikimediator.WikiMediator;
 import fastily.jwiki.core.Wiki;
 import org.junit.Test;
@@ -8,21 +7,18 @@ import org.junit.Test;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
 public class Tests {
-
     /*
         You can add your tests here.
         Remember to import the packages that you need, such
         as cpen221.mp3.cache.
      */
-
 
     @Test
     public void simpleSearchTest1() {
@@ -115,8 +111,8 @@ public class Tests {
         wm.getPage("soccer");
         wm.getPage("soccer");
         wm.getPage("china");
-        answer.add("hockey");
         answer.add("Obama");
+        answer.add("hockey");
 
         assertEquals(answer, wm.zeitgeist(2));
     }
@@ -133,9 +129,9 @@ public class Tests {
         wm.getPage("soccer");
         wm.getPage("soccer");
         wm.getPage("china");
-        answer.add("soccer");
-        answer.add("hockey");
         answer.add("Obama");
+        answer.add("hockey");
+        answer.add("soccer");
 
         assertEquals(answer, wm.zeitgeist(3));
     }
@@ -152,39 +148,36 @@ public class Tests {
         wm.getPage("soccer");
         wm.getPage("soccer");
         wm.getPage("china");
-        answer.add("soccer");
-        answer.add("hockey");
         answer.add("Obama");
+        answer.add("hockey");
+        answer.add("soccer");
 
         assertEquals(answer, wm.trending(3));
     }
 
     @Test
-    public void trendingTest2() {
+    public void trendingTest2() throws InterruptedException {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        long time = System.currentTimeMillis();
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
         wm.simpleSearch("Obama", 3);
         wm.getPage("hockey");
-        while(System.currentTimeMillis() < (time + 30*1000)) {
-
-        }
+        TimeUnit.SECONDS.sleep(30);
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
         wm.getPage("china");
         wm.getPage("hockey");
-        answer.add("china");
-        answer.add("soccer");
         answer.add("hockey");
+        answer.add("soccer");
+        answer.add("china");
 
         assertEquals(answer, wm.trending(3));
     }
 
     @Test
-    public void trendingTest3() {
+    public void trendingTest3() throws InterruptedException {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
         long time = System.currentTimeMillis();
@@ -192,18 +185,16 @@ public class Tests {
         wm.simpleSearch("Obama", 2);
         wm.simpleSearch("Obama", 3);
         wm.getPage("hockey");
-        while(System.currentTimeMillis() < (time + 30*1000)) {
-
-        }
+        TimeUnit.SECONDS.sleep(30);
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
         wm.getPage("china");
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
-        answer.add("china");
-        answer.add("hockey");
         answer.add("soccer");
+        answer.add("hockey");
+        answer.add("china");
 
         assertEquals(answer, wm.trending(3));
     }
@@ -223,13 +214,12 @@ public class Tests {
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
 
-        assertEquals(10, wm.peakLoad30s());
+        assertEquals(11, wm.peakLoad30s());
     }
 
     @Test
-    public void peakLoad2() {
+    public void peakLoad2() throws InterruptedException {
         WikiMediator wm = new WikiMediator();
-        long time = System.currentTimeMillis();
 
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -238,9 +228,7 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        while(System.currentTimeMillis() < (time + 30*1000)) {
-
-        }
+        TimeUnit.SECONDS.sleep(30);
         wm.getPage("china");
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
@@ -249,9 +237,8 @@ public class Tests {
     }
 
     @Test
-    public void peakLoad3() {
+    public void peakLoad3() throws InterruptedException {
         WikiMediator wm = new WikiMediator();
-        long time = System.currentTimeMillis();
 
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -260,20 +247,17 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        while(System.currentTimeMillis() < (time + 31*1000)) {
-
-        }
+        TimeUnit.SECONDS.sleep(31);
         wm.getPage("china");
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
 
-        assertEquals(6, wm.peakLoad30s());
+        assertEquals(8, wm.peakLoad30s());
     }
 
     @Test
-    public void peakLoad4() {
+    public void peakLoad4() throws InterruptedException {
         WikiMediator wm = new WikiMediator();
-        long time = System.currentTimeMillis();
 
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -284,11 +268,9 @@ public class Tests {
         wm.getPage("soccer");
         wm.getPage("china");
         wm.getPage("hockey");
-        while(System.currentTimeMillis() < (time + 40*1000)) {
-
-        }
+        TimeUnit.SECONDS.sleep(40);
         wm.simpleSearch("soccer", 3);
 
-        assertEquals(9, wm.peakLoad30s());
+        assertEquals(10, wm.peakLoad30s());
     }
 }

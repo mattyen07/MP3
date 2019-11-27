@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 
 public class MyThread<T extends Cacheable> implements Runnable{
     private final int timeoutRun;
-    private final Map<T, Integer> cacheMap;
+    private final Map<T, LocalDateTime> cacheMap;
 
-    public MyThread(int timeout, Map<T, Integer> map) {
+    public MyThread(int timeout, Map<T, LocalDateTime> map) {
         this.timeoutRun = timeout;
         this.cacheMap = map;
 
@@ -27,7 +27,7 @@ public class MyThread<T extends Cacheable> implements Runnable{
                 }
 
                 for (T object : copyMap) {
-                    if (LocalDateTime.now().getSecond() - this.cacheMap.get(object) >= this.timeoutRun) {
+                    if (LocalDateTime.now().minusSeconds(timeoutRun).isAfter(this.cacheMap.get(object))) {
                         this.cacheMap.remove(object);
                     }
                 }
