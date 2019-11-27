@@ -76,15 +76,13 @@ public class WikiMediator {
     public String getPage(String pageTitle) {
         String text;
         addToMap(pageTitle);
-
-        CacheObject co = (CacheObject) this.cache.get(pageTitle);
-        if (co.id().equals("")) {
+        try {
+            CacheObject co = (CacheObject) this.cache.get(pageTitle);
+            text = co.getText();
+            this.cache.update(co);
+        } catch (NotFoundException e) {
             text = this.wiki.getPageText(pageTitle);
             this.cache.put(new CacheObject(pageTitle));
-        } else {
-            CacheObject a = (CacheObject) this.cache.get(pageTitle);
-            text = a.getText();
-            this.cache.update(co);
         }
 
         List<LocalDateTime> requestDates = this.requestMap.get("getPage");

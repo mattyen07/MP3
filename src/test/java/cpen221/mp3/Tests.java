@@ -23,7 +23,7 @@ public class Tests {
     @Test
     public void simpleSearchTest1() {
         WikiMediator wm = new WikiMediator();
-        List<String> answer = new ArrayList<>();
+        List<String> answer;
         Wiki wiki = new Wiki("en.wikipedia.org");
         answer = wiki.search("Barack Obama", 5);
         assertEquals(answer, wm.simpleSearch("Barack Obama", 5));
@@ -35,7 +35,6 @@ public class Tests {
         List<String> answer;
         Wiki wiki = new Wiki("en.wikipedia.org");
         answer = wiki.search("Barack Obama", 10);
-        wm.simpleSearch("Barack Obama", 2);
         assertEquals(answer, wm.simpleSearch("Barack Obama", 10));
     }
 
@@ -298,5 +297,29 @@ public class Tests {
         WikiMediator wm = new WikiMediator();
 
         assertEquals(1, wm.peakLoad30s());
+    }
+
+    @Test
+    public void peakLoad7() throws InterruptedException {
+        WikiMediator wm = new WikiMediator();
+        wm.getConnectedPages("Galojan", 1);
+        wm.simpleSearch("hockey", 3);
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("hockey");
+        wm.zeitgeist(3);
+        wm.peakLoad30s();
+        wm.trending(4);
+        wm.simpleSearch("soccer", 9);
+        TimeUnit.SECONDS.sleep(35);
+        wm.getConnectedPages("hockey",0);
+        wm.getPage("hockey");
+        wm.simpleSearch("hockey", 20);
+        wm.getPage("hockey");
+        wm.trending(3);
+        wm.zeitgeist(2);
+        wm.getPage("soccer");
+
+        assertEquals(9, wm.peakLoad30s());
     }
 }

@@ -77,20 +77,17 @@ public class Cache<T extends Cacheable> {
      * @param id the identifier of the object to be retrieved
      * @return the object that matches the identifier from the cache
      */
-    public T get(String id) {
+    public T get(String id) throws NotFoundException {
 
         /* Do not return null. Throw a suitable checked exception when an object
             is not in the cache. */
-        try {
-            for (T object : this.cacheMap.keySet()) {
-                if (object.id().equals(id)) {
-                    return object;
-                }
+        for (T object : this.cacheMap.keySet()) {
+            if (object.id().equals(id)) {
+                return object;
             }
-            throw new NotFoundException("ID not found");
-        } catch(NotFoundException e){
-            return(T) new CacheObject("");
         }
+
+        throw new NotFoundException("ID not found");
     }
 
     /**
