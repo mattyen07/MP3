@@ -57,8 +57,7 @@ public class WikiMediator {
      * wikipedia's search service
      */
     public List<String> simpleSearch(String query, int limit) {
-        addToMap(query);
-
+        addToMaps(query);
         List<LocalDateTime> requestDates = this.requestMap.get("search");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("search", requestDates);
@@ -74,7 +73,7 @@ public class WikiMediator {
      */
     public String getPage(String pageTitle) {
         String text;
-        addToMap(pageTitle);
+        addToMaps(pageTitle);
 
         try {
             CacheObject co = (CacheObject) this.cache.get(pageTitle);
@@ -101,7 +100,7 @@ public class WikiMediator {
      *                    otherwise, adds the current time to the list of times the
      *                    request has been accessed
      */
-    synchronized private void addToMap(String request) {
+    synchronized private void addToMaps(String request) {
         if (popularityMap.containsKey(request)) {
             int count = popularityMap.get(request);
             count++;
@@ -132,7 +131,6 @@ public class WikiMediator {
      */
     public List<String> getConnectedPages(String pageTitle, int hops) {
         Set<String> pageLinks = new HashSet<>();
-
         pageLinks.add(pageTitle);
 
         if (hops == 0) {

@@ -2,8 +2,8 @@ package cpen221.mp3.cache;
 
 
 import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.time.LocalDateTime;
 
 public class MyThread<T extends Cacheable> implements Runnable{
@@ -17,25 +17,20 @@ public class MyThread<T extends Cacheable> implements Runnable{
     }
 
     public void run() {
-        try {
-            while (true) {
-                List<T> copyMap = new ArrayList<>();
-                for (T key : this.cacheMap.keySet()) {
-                    if (!copyMap.contains(key)) {
-                        copyMap.add(key);
-                    }
-                }
-
-                for (T object : copyMap) {
-                    if (LocalDateTime.now().minusSeconds(timeoutRun).isAfter(this.cacheMap.get(object))) {
-                        this.cacheMap.remove(object);
-                    }
-                }
-
+        while (true) {
+            Set<T> copyMap = new HashSet<>();
+            for (T key : this.cacheMap.keySet()) {
+                copyMap.add(key);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+            for (T object : copyMap) {
+                if (LocalDateTime.now().minusSeconds(timeoutRun).isAfter(this.cacheMap.get(object))) {
+                    this.cacheMap.remove(object);
+                }
+            }
+
         }
     }
+
 }
 

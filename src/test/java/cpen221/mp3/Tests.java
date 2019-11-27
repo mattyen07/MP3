@@ -1,6 +1,9 @@
 package cpen221.mp3;
 
+import cpen221.mp3.cache.NotFoundException;
 import cpen221.mp3.wikimediator.WikiMediator;
+import cpen221.mp3.cache.Cache;
+import cpen221.mp3.cache.CacheObject;
 import fastily.jwiki.core.Wiki;
 import org.junit.Test;
 
@@ -35,6 +38,7 @@ public class Tests {
         List<String> answer;
         Wiki wiki = new Wiki("en.wikipedia.org");
         answer = wiki.search("Barack Obama", 10);
+        wm.simpleSearch("Barack Obama", 2);
         assertEquals(answer, wm.simpleSearch("Barack Obama", 10));
     }
 
@@ -155,14 +159,18 @@ public class Tests {
     }
 
     @Test
-    public void trendingTest2() throws InterruptedException {
+    public void trendingTest2() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
         wm.simpleSearch("Obama", 3);
         wm.getPage("hockey");
-        TimeUnit.SECONDS.sleep(30);
+        try {
+            TimeUnit.SECONDS.sleep(30);
+        } catch (Exception e) {
+            fail();
+        }
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
@@ -176,15 +184,18 @@ public class Tests {
     }
 
     @Test
-    public void trendingTest3() throws InterruptedException {
+    public void trendingTest3() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        long time = System.currentTimeMillis();
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
         wm.simpleSearch("Obama", 3);
         wm.getPage("hockey");
-        TimeUnit.SECONDS.sleep(30);
+        try {
+            TimeUnit.SECONDS.sleep(30);
+        } catch (Exception e) {
+            fail();
+        }
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
@@ -199,7 +210,7 @@ public class Tests {
     }
 
     @Test
-    public void peakLoad1() {
+    public void peakLoadTest1() {
         WikiMediator wm = new WikiMediator();
 
         wm.simpleSearch("Obama", 1);
@@ -217,7 +228,7 @@ public class Tests {
     }
 
     @Test
-    public void peakLoad2() throws InterruptedException {
+    public void peakLoadTest2() {
         WikiMediator wm = new WikiMediator();
 
         wm.simpleSearch("Obama", 1);
@@ -227,7 +238,11 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        TimeUnit.SECONDS.sleep(30);
+        try {
+            TimeUnit.SECONDS.sleep(30);
+        } catch (Exception e) {
+            fail();
+        }
         wm.getPage("ultimate");
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
@@ -236,7 +251,7 @@ public class Tests {
     }
 
     @Test
-    public void peakLoad3() throws InterruptedException {
+    public void peakLoadTest3() {
         WikiMediator wm = new WikiMediator();
 
         wm.simpleSearch("Obama", 1);
@@ -246,7 +261,11 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        TimeUnit.SECONDS.sleep(31);
+        try {
+            TimeUnit.SECONDS.sleep(31);
+        } catch (Exception e) {
+            fail();
+        }
         wm.getPage("ultimate");
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
@@ -255,7 +274,7 @@ public class Tests {
     }
 
     @Test
-    public void peakLoad4() throws InterruptedException {
+    public void peakLoadTest4() {
         WikiMediator wm = new WikiMediator();
 
         wm.simpleSearch("Obama", 1);
@@ -267,20 +286,28 @@ public class Tests {
         wm.getPage("soccer");
         wm.getPage("ultimate");
         wm.getPage("hockey");
-        TimeUnit.SECONDS.sleep(40);
+        try {
+            TimeUnit.SECONDS.sleep(40);
+        } catch (Exception e) {
+            fail();
+        }
         wm.simpleSearch("soccer", 3);
 
         assertEquals(9, wm.peakLoad30s());
     }
 
     @Test
-    public void peakLoad5() throws InterruptedException {
+    public void peakLoadTest5() {
         WikiMediator wm = new WikiMediator();
 
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
         wm.simpleSearch("Obama", 3);
-        TimeUnit.SECONDS.sleep(35);
+        try {
+            TimeUnit.SECONDS.sleep(35);
+        } catch (Exception e) {
+            fail();
+        }
         wm.zeitgeist(2);
         wm.getPage("hockey");
         wm.getPage("hockey");
@@ -293,14 +320,14 @@ public class Tests {
         assertEquals(9, wm.peakLoad30s());
     }
     @Test
-    public void peakLoad6() {
+    public void peakLoadTest6() {
         WikiMediator wm = new WikiMediator();
 
         assertEquals(1, wm.peakLoad30s());
     }
 
     @Test
-    public void peakLoad7() throws InterruptedException {
+    public void peakLoadTest7() {
         WikiMediator wm = new WikiMediator();
         wm.getConnectedPages("Galojan", 1);
         wm.simpleSearch("hockey", 3);
@@ -311,7 +338,11 @@ public class Tests {
         wm.peakLoad30s();
         wm.trending(4);
         wm.simpleSearch("soccer", 9);
-        TimeUnit.SECONDS.sleep(35);
+        try {
+            TimeUnit.SECONDS.sleep(35);
+        } catch (Exception e) {
+            fail();
+        }
         wm.getConnectedPages("hockey",0);
         wm.getPage("hockey");
         wm.simpleSearch("hockey", 20);
@@ -321,5 +352,111 @@ public class Tests {
         wm.getPage("soccer");
 
         assertEquals(9, wm.peakLoad30s());
+    }
+
+    @Test
+    public void putTest1() {
+        Cache cache = new Cache();
+        CacheObject co = new CacheObject("hockey");
+        assertTrue (cache.put(co));
+    }
+
+    @Test
+    public void putTest2() {
+        Cache cache = new Cache(1,5);
+        CacheObject co = new CacheObject("hockey");
+        CacheObject co1 = new CacheObject("soccer");
+        cache.put(co);
+        assertTrue(cache.put(co1));
+    }
+
+    @Test
+    public void putTest3() {
+        Cache cache = new Cache(1,5);
+        CacheObject co = new CacheObject("hockey");
+        cache.put(co);
+        assertFalse(cache.put(co));
+    }
+
+    @Test
+    public void getTest1() throws NotFoundException {
+        Cache cache = new Cache();
+        CacheObject co = new CacheObject("hockey");
+        cache.put(co);
+        assertEquals(co, cache.get(co.id()));
+    }
+
+    @Test (expected = NotFoundException.class)
+    public void getTest2() throws NotFoundException {
+        Cache cache = new Cache();
+        CacheObject co = new CacheObject("hockey");
+        assertEquals(co, cache.get(co.id()));
+    }
+
+    @Test (expected = NotFoundException.class)
+    public void getTest3() throws NotFoundException {
+        Cache cache = new Cache(3,3);
+        CacheObject co = new CacheObject("hockey");
+        cache.put(co);
+        try {
+            TimeUnit.SECONDS.sleep(4);
+        } catch (Exception e) {
+            fail();
+        }
+        assertEquals(co, cache.get(co.id()));
+    }
+
+    @Test
+    public void touchTest1() {
+        Cache cache = new Cache();
+        CacheObject co = new CacheObject("hockey");
+        cache.put(co);
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (Exception e) {
+            fail();
+        }
+        assertTrue(cache.touch(co.id()));
+    }
+
+    @Test
+    public void touchTest2() {
+        Cache cache = new Cache();
+        CacheObject co = new CacheObject("hockey");
+        assertFalse(cache.touch(co.id()));
+    }
+
+    @Test
+    public void touchTest3() {
+        Cache cache = new Cache();
+        CacheObject co = new CacheObject("hockey");
+        CacheObject co1 = new CacheObject("soccer");
+        cache.put(co);
+        assertFalse(cache.touch(co1.id()));
+    }
+
+    @Test
+    public void updateTest1() {
+        Cache cache = new Cache();
+        CacheObject co = new CacheObject("hockey");
+        cache.put(co);
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (Exception e) {
+            fail();
+        }
+        assertTrue(cache.update(co));
+    }
+
+    @Test
+    public void updateTest2() {
+        Cache cache = new Cache();
+        CacheObject co = new CacheObject("hockey");
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (Exception e) {
+            fail();
+        }
+        assertFalse(cache.update(co));
     }
 }
