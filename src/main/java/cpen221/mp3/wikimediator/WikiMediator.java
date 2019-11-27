@@ -16,7 +16,6 @@ import cpen221.mp3.cache.NotFoundException;
 import fastily.jwiki.core.Wiki;
 
 public class WikiMediator {
-
     /*
         You must implement the methods with the exact signatures
         as provided in the statement for this mini-project.
@@ -50,49 +49,33 @@ public class WikiMediator {
         this.requestMap.put("peakLoad", new ArrayList<>());
     }
 
+    /**
+     * A simple search function that returns a list of pages that match the query string
+     * @param query is a String to use with Wikipedia's search function
+     * @param limit is the maximum number of items that simpleSearch will return
+     * @modifies requestMap, adds a time the method was called into the request map
+     * @return  a list of strings with limit strings that appear from the query using
+     * wikipedia's search service
+     */
     public List<String> simpleSearch(String query, int limit) {
-        if (popularityMap.containsKey(query)) {
-            int count = popularityMap.get(query);
-            count++;
-            popularityMap.replace(query, count);
-        } else {
-            popularityMap.put(query, 1);
-        }
+        addToMap(query);
 
-        if(!timeMap.containsKey(query)) {
-            ArrayList<LocalDateTime> timeList = new ArrayList<>();
-            timeList.add(LocalDateTime.now());
-            timeMap.put(query, timeList);
-        } else {
-            List<LocalDateTime> timeList = timeMap.get(query);
-            timeList.add(LocalDateTime.now());
-            timeMap.replace(query, timeList);
-        }
         List<LocalDateTime> requestDates = this.requestMap.get("search");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("search", requestDates);
         return this.wiki.search(query, limit);
     }
 
+    /**
+     * Returns the page text of a given page title. If the page title has been requested already
+     * the page text will be obtained from the cache instead of accessing wikipedia
+     * @param pageTitle is a page that we wish to find the wikipedia page
+     * @modifies requestMap, adds a time the method was called into the request map
+     * @return a string that contains the text of the given page title
+     */
     public String getPage(String pageTitle) {
         String text;
-        if (popularityMap.containsKey(pageTitle)) {
-            int count = popularityMap.get(pageTitle);
-            count++;
-            popularityMap.replace(pageTitle, count);
-        } else {
-            popularityMap.put(pageTitle, 1);
-        }
-
-        if(!timeMap.containsKey(pageTitle)) {
-            ArrayList<LocalDateTime> timeList = new ArrayList<>();
-            timeList.add(LocalDateTime.now());
-            timeMap.put(pageTitle, timeList);
-        } else {
-            List<LocalDateTime> timeList = timeMap.get(pageTitle);
-            timeList.add(LocalDateTime.now());
-            timeMap.replace(pageTitle, timeList);
-        }
+        addToMap(pageTitle);
 
         CacheObject co = (CacheObject) this.cache.get(pageTitle);
         if (co.id().equals("")) {
@@ -110,6 +93,44 @@ public class WikiMediator {
         return text;
     }
 
+    /**
+     * Helper method to add request to the instance popularity map and time map
+     * @param request the query or pageTitle to be added to the map
+     * @modifies popularityMap, adds a query or pageTitle if it is not in the map,
+     *                          otherwise, increases the count of the key by 1
+     * @modifies timeMap, adds a query or pageTitle if it is not in the map,
+     *                    otherwise, adds the current time to the list of times the
+     *                    request has been accessed
+     */
+    private void addToMap(String request) {
+        if (popularityMap.containsKey(request)) {
+            int count = popularityMap.get(request);
+            count++;
+            popularityMap.replace(request, count);
+        } else {
+            popularityMap.put(request, 1);
+        }
+
+        if(!timeMap.containsKey(request)) {
+            ArrayList<LocalDateTime> timeList = new ArrayList<>();
+            timeList.add(LocalDateTime.now());
+            timeMap.put(request, timeList);
+        } else {
+            List<LocalDateTime> timeList = timeMap.get(request);
+            timeList.add(LocalDateTime.now());
+            timeMap.replace(request, timeList);
+        }
+    }
+
+    /**
+     * Find a list of pages that are connected to the given page in a certain number of hops
+     * @param pageTitle The starting page
+     * @param hops The number of links we jump through
+     * @modifies requestMap, adds a time the method was called into the request map
+     * @return A list of pages that reachable within a certain number of hops.
+     * Removes all duplicate pages and thus, only returns a list of unique pages that can
+     * be found through links from the initial pageTitle
+     */
     public List<String> getConnectedPages(String pageTitle, int hops) {
         Set<String> pageLinks = new HashSet<>();
 
@@ -130,6 +151,16 @@ public class WikiMediator {
         return connectedPages;
     }
 
+    /**
+     * Recursive Helper method for getConnectedPAges
+     * Base Case is if hops <=0, returns a list of just the current page title
+     * otherwise subtracts 1 from hops and calls helper again for each link in the list
+     * @param pageTitle initial page we are starting from
+     * @param hops The number of links to jump through
+     * @modifies requestMap, adds a time the method was called into the request map
+     * @return a list of pages that can be found within a certain number of hops
+     * starting from pageTitle
+     */
     private List<String> getConnectedPagesHelper(String pageTitle, int hops) {
         List<String> allPages = new ArrayList<>();
         List<String> titleOnly = new ArrayList<>();
@@ -148,6 +179,12 @@ public class WikiMediator {
         return allPages;
     }
 
+    /**
+     * Returns
+     * @param limit the maximum number of items to return from the method call
+     * @modifies requestMap, adds a time the method was called into the request map
+     * @return
+     */
     public List<String> zeitgeist(int limit) {
         List<String> mostCommon = new ArrayList<>();
         int maxOccurrences;
@@ -172,6 +209,12 @@ public class WikiMediator {
         return mostCommon;
     }
 
+    /**
+     *
+     * @param limit
+     * @modifies requestMap, adds a time the method was called into the request map
+     * @return
+     */
     public List<String> trending(int limit) {
         List<String> trendingList = new ArrayList<>();
         LocalDateTime currentTime = LocalDateTime.now();
@@ -212,6 +255,11 @@ public class WikiMediator {
         return trendingList;
     }
 
+    /**
+     *
+     * @modifies requestMap, adds a time the method was called into the request map
+     * @return
+     */
     public int peakLoad30s() {
         List<LocalDateTime> requestDates = this.requestMap.get("peakLoad");
         requestDates.add(LocalDateTime.now());
