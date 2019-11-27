@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import cpen221.mp3.cache.Cache;
 import cpen221.mp3.cache.CacheObject;
-import cpen221.mp3.cache.Cacheable;
 import cpen221.mp3.cache.NotFoundException;
 import fastily.jwiki.core.Wiki;
 
@@ -76,6 +75,7 @@ public class WikiMediator {
     public String getPage(String pageTitle) {
         String text;
         addToMap(pageTitle);
+
         try {
             CacheObject co = (CacheObject) this.cache.get(pageTitle);
             text = co.getText();
@@ -92,7 +92,8 @@ public class WikiMediator {
     }
 
     /**
-     * Helper method to add request to the instance popularity map and time map
+     * Helper method to add request to the instance popularity map and time map.
+     * Method is synchronized so only one thread can access and add to map at the same time
      * @param request the query or pageTitle to be added to the map
      * @modifies popularityMap, adds a query or pageTitle if it is not in the map,
      *                          otherwise, increases the count of the key by 1
@@ -100,7 +101,7 @@ public class WikiMediator {
      *                    otherwise, adds the current time to the list of times the
      *                    request has been accessed
      */
-    private void addToMap(String request) {
+    synchronized private void addToMap(String request) {
         if (popularityMap.containsKey(request)) {
             int count = popularityMap.get(request);
             count++;

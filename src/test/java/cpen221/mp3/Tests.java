@@ -109,7 +109,7 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        wm.getPage("china");
+        wm.getPage("ultimate");
         answer.add("Obama");
         answer.add("hockey");
 
@@ -127,7 +127,7 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        wm.getPage("china");
+        wm.getPage("ultimate");
         answer.add("Obama");
         answer.add("hockey");
         answer.add("soccer");
@@ -146,7 +146,7 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        wm.getPage("china");
+        wm.getPage("ultimate");
         answer.add("Obama");
         answer.add("hockey");
         answer.add("soccer");
@@ -166,11 +166,11 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        wm.getPage("china");
+        wm.getPage("ultimate");
         wm.getPage("hockey");
         answer.add("hockey");
         answer.add("soccer");
-        answer.add("china");
+        answer.add("ultimate");
 
         assertEquals(answer, wm.trending(3));
     }
@@ -188,12 +188,12 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        wm.getPage("china");
+        wm.getPage("ultimate");
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
         answer.add("soccer");
         answer.add("hockey");
-        answer.add("china");
+        answer.add("ultimate");
 
         assertEquals(answer, wm.trending(3));
     }
@@ -209,7 +209,7 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        wm.getPage("china");
+        wm.getPage("ultimate");
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
 
@@ -228,7 +228,7 @@ public class Tests {
         wm.getPage("soccer");
         wm.getPage("soccer");
         TimeUnit.SECONDS.sleep(30);
-        wm.getPage("china");
+        wm.getPage("ultimate");
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
 
@@ -247,7 +247,7 @@ public class Tests {
         wm.getPage("soccer");
         wm.getPage("soccer");
         TimeUnit.SECONDS.sleep(31);
-        wm.getPage("china");
+        wm.getPage("ultimate");
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
 
@@ -265,7 +265,7 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        wm.getPage("china");
+        wm.getPage("ultimate");
         wm.getPage("hockey");
         TimeUnit.SECONDS.sleep(40);
         wm.simpleSearch("soccer", 3);
@@ -286,7 +286,7 @@ public class Tests {
         wm.getPage("hockey");
         wm.getPage("soccer");
         wm.getPage("soccer");
-        wm.getPage("china");
+        wm.getPage("ultimate");
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
 

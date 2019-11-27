@@ -29,6 +29,7 @@ public class Cache<T extends Cacheable> {
         this.capacity = capacity;
         this.cacheMap = new ConcurrentHashMap<>();
 
+        /* starts the auto clear expiry thread */
         Runnable expiry = new MyThread<>(timeout, this.cacheMap);
         Thread expiryThread = new Thread(expiry);
         expiryThread.start();

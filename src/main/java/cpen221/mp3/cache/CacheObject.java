@@ -9,13 +9,8 @@ public class CacheObject implements Cacheable {
 
     public CacheObject (String id) {
         this.id = id;
-        if (id.equals("")) {
-            this.text = "";
-        } else {
-            Wiki wiki = new Wiki("en.wikipedia.org");
-            this.text = wiki.getPageText(id);
-        }
-
+        Wiki wiki = new Wiki("en.wikipedia.org");
+        this.text = wiki.getPageText(id);
     }
 
     public String id() {
