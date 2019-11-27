@@ -281,7 +281,7 @@ public class WikiMediator {
             LocalDateTime intervalTime = startingTime.plusSeconds(30);
             for (String request : this.requestMap.keySet()) {
                 for (LocalDateTime time : this.requestMap.get(request)) {
-                    if (time.isBefore(intervalTime) && time.isAfter(startingTime)) {
+                    if (time.isBefore(intervalTime) && (time.isAfter(startingTime) || time.isEqual(startingTime))) {
                         intervalRequests++;
                     }
                 }

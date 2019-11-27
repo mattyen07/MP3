@@ -233,7 +233,7 @@ public class Tests {
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
 
-        assertEquals(8, wm.peakLoad30s());
+        assertEquals(7, wm.peakLoad30s());
     }
 
     @Test
@@ -252,7 +252,7 @@ public class Tests {
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
 
-        assertEquals(8, wm.peakLoad30s());
+        assertEquals(7, wm.peakLoad30s());
     }
 
     @Test
@@ -271,6 +271,32 @@ public class Tests {
         TimeUnit.SECONDS.sleep(40);
         wm.simpleSearch("soccer", 3);
 
-        assertEquals(10, wm.peakLoad30s());
+        assertEquals(9, wm.peakLoad30s());
+    }
+
+    @Test
+    public void peakLoad5() throws InterruptedException {
+        WikiMediator wm = new WikiMediator();
+
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        TimeUnit.SECONDS.sleep(35);
+        wm.zeitgeist(2);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("china");
+        wm.getPage("hockey");
+        wm.simpleSearch("soccer", 3);
+
+        assertEquals(9, wm.peakLoad30s());
+    }
+    @Test
+    public void peakLoad6() {
+        WikiMediator wm = new WikiMediator();
+
+        assertEquals(1, wm.peakLoad30s());
     }
 }
