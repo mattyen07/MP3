@@ -379,6 +379,31 @@ public class Tests {
     }
 
     @Test
+    public void putTest4() {
+        Cache cache = new Cache (2,30);
+        CacheObject co = new CacheObject("hockey");
+        cache.put(co);
+        assertFalse(cache.put(co));
+    }
+
+    @Test
+    public void putTest5() {
+        Cache cache = new Cache (2,30);
+        CacheObject co = new CacheObject("hockey");
+        CacheObject co1 = new CacheObject("soccer");
+        CacheObject co2 = new CacheObject("ultimate");
+        cache.put(co);
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (Exception e) {
+            fail();
+        }
+        cache.put(co1);
+
+        assertTrue(cache.put(co2));
+    }
+
+    @Test
     public void getTest1() throws NotFoundException {
         Cache cache = new Cache();
         CacheObject co = new CacheObject("hockey");
