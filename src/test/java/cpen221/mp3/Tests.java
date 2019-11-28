@@ -431,6 +431,26 @@ public class Tests {
         assertEquals(co, cache.get(co.id()));
     }
 
+    @Test (expected = NotFoundException.class)
+    public void getTest4() throws NotFoundException {
+        Cache cache = new Cache (2,30);
+        CacheObject co = new CacheObject("hockey");
+        CacheObject co1 = new CacheObject("soccer");
+        CacheObject co2 = new CacheObject("ultimate");
+        cache.put(co);
+        cache.put(co1);
+
+        try {
+            TimeUnit.SECONDS.sleep(1);
+            cache.get(co.id());
+        } catch(Exception e) {
+            fail();
+        }
+
+        cache.put(co2);
+        assertEquals(co1, cache.get(co1.id()));
+    }
+
     @Test
     public void touchTest1() {
         Cache cache = new Cache();

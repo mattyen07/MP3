@@ -3,28 +3,22 @@ package cpen221.mp3.cache;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 import java.time.LocalDateTime;
 
 public class MyThread<T extends Cacheable> implements Runnable{
-    private final int timeoutRun;
-    private final Map<T, LocalDateTime> cacheMap;
+    private final Map<T, Pair> cacheMap;
 
-    public MyThread(int timeout, Map<T, LocalDateTime> map) {
-        this.timeoutRun = timeout;
+    public MyThread(Map<T, Pair> map) {
         this.cacheMap = map;
 
     }
 
     public void run() {
         while (true) {
-            Set<T> copyMap = new HashSet<>();
-            for (T key : this.cacheMap.keySet()) {
-                copyMap.add(key);
-            }
+            Set<T> copyMap = this.cacheMap.keySet();
 
             for (T object : copyMap) {
-                if (LocalDateTime.now().minusSeconds(timeoutRun).isAfter(this.cacheMap.get(object))) {
+                if (LocalDateTime.now().isAfter(this.cacheMap.get(object).getExpiryTime())) {
                     this.cacheMap.remove(object);
                 }
             }

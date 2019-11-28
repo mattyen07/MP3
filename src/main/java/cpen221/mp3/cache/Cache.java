@@ -14,7 +14,8 @@ public class Cache<T extends Cacheable> {
     public static final int DTIMEOUT = 3600;
 
     private final int capacity;
-    private Map<T, LocalDateTime> cacheMap;
+    private Map<T, Pair> cacheMap;
+    private final int timeout;
 
     /**
      * Create a cache with a fixed capacity and a timeout value.
@@ -28,9 +29,10 @@ public class Cache<T extends Cacheable> {
 
         this.capacity = capacity;
         this.cacheMap = new ConcurrentHashMap<>();
+        this.timeout = timeout;
 
         /* starts the auto clear expiry thread */
-        Runnable expiry = new MyThread<>(timeout, this.cacheMap);
+        Runnable expiry = new MyThread<>(this.cacheMap);
         Thread expiryThread = new Thread(expiry);
         expiryThread.start();
     }
@@ -51,7 +53,7 @@ public class Cache<T extends Cacheable> {
      */
     public boolean put(T t) {
         if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
-            this.cacheMap.put(t, LocalDateTime.now());
+            this.cacheMap.put(t, new Pair(LocalDateTime.now(), LocalDateTime.now().plusSeconds(this.timeout)));
             return true;
         }
         if (this.cacheMap.size() == this.capacity && !this.cacheMap.containsKey(t) ) {
@@ -60,14 +62,14 @@ public class Cache<T extends Cacheable> {
             T removeObject = t;
 
             for (T key: this.cacheMap.keySet()) {
-                if (this.cacheMap.get(key).isBefore(maxTime)) {
+                if (this.cacheMap.get(key).getLastAccess().isBefore(maxTime)) {
                     removeObject = key;
-                    maxTime = this.cacheMap.get(key);
+                    maxTime = this.cacheMap.get(key).getLastAccess();
                 }
             }
 
             this.cacheMap.remove(removeObject);
-            this.cacheMap.put(t, time);
+            this.cacheMap.put(t, new Pair(time, LocalDateTime.now().plusSeconds(this.timeout)));
             return true;
         }
 
@@ -84,6 +86,8 @@ public class Cache<T extends Cacheable> {
             is not in the cache. */
         for (T object : this.cacheMap.keySet()) {
             if (object.id().equals(id)) {
+                LocalDateTime expiry = this.cacheMap.get(object).getExpiryTime();
+                this.cacheMap.replace(object, new Pair(LocalDateTime.now(), expiry));
                 return object;
             }
         }
@@ -102,7 +106,9 @@ public class Cache<T extends Cacheable> {
     public boolean touch(String id) {
         for (T object : this.cacheMap.keySet()) {
             if (object.id().equals(id)) {
-                this.cacheMap.replace(object, LocalDateTime.now());
+                LocalDateTime update = this.cacheMap.get(object).getLastAccess();
+                Pair replacePair = new Pair(update, LocalDateTime.now().plusSeconds(this.timeout));
+                this.cacheMap.replace(object, replacePair);
                 return true;
             }
         }
@@ -120,7 +126,9 @@ public class Cache<T extends Cacheable> {
      */
     public boolean update(T t) {
         if (this.cacheMap.containsKey(t)) {
-            this.cacheMap.replace(t, LocalDateTime.now());
+            LocalDateTime update = this.cacheMap.get(t).getLastAccess();
+            Pair replacePair = new Pair(update, LocalDateTime.now().plusSeconds(this.timeout));
+            this.cacheMap.replace(t, replacePair);
             return true;
         }
         return false;
