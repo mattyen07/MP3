@@ -52,10 +52,11 @@ public class Cache<T extends Cacheable> {
      */
     public boolean put(T t) {
         if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
-            this.cacheMap.put(t, new Pair(LocalDateTime.now(), LocalDateTime.now().plusSeconds(this.timeout)));
+            Pair add = new Pair(LocalDateTime.now(), LocalDateTime.now().plusSeconds(this.timeout));
+            this.cacheMap.put(t, add);
             return true;
         }
-        if (this.cacheMap.size() == this.capacity && !this.cacheMap.containsKey(t) ) {
+        if (this.cacheMap.size() == this.capacity && !this.cacheMap.containsKey(t)) {
             LocalDateTime time = LocalDateTime.now();
             LocalDateTime maxTime = LocalDateTime.now();
             T removeObject = t;

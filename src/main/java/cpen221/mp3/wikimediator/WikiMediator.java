@@ -37,7 +37,7 @@ public class WikiMediator {
         this.popularityMap = new ConcurrentHashMap<>();
         this.timeMap = new ConcurrentHashMap<>();
         this.requestMap = new ConcurrentHashMap<>();
-        this.cache = new Cache<>(256,43200);
+        this.cache = new Cache<>(256, 43200);
         this.startTime = LocalDateTime.now();
 
         this.requestMap.put("search", new ArrayList<>());
@@ -106,7 +106,7 @@ public class WikiMediator {
      *                    otherwise, adds the current time to the list of times the
      *                    request has been accessed
      */
-    synchronized private void addToMaps(String request) {
+    private synchronized void addToMaps(String request) {
         if (popularityMap.containsKey(request)) {
             int count = popularityMap.get(request);
             count++;
@@ -115,7 +115,7 @@ public class WikiMediator {
             popularityMap.put(request, 1);
         }
 
-        if(!timeMap.containsKey(request)) {
+        if (!timeMap.containsKey(request)) {
             ArrayList<LocalDateTime> timeList = new ArrayList<>();
             timeList.add(LocalDateTime.now());
             timeMap.put(request, timeList);
@@ -199,7 +199,8 @@ public class WikiMediator {
         while (count < limit) {
             maxOccurrences = 0;
             for (String search : this.popularityMap.keySet()) {
-                if (this.popularityMap.get(search) > maxOccurrences && !mostCommon.contains(search)) {
+                if ((this.popularityMap.get(search) > maxOccurrences)
+                        && !mostCommon.contains(search)) {
                     maxOccurrences = this.popularityMap.get(search);
                     mostOccurringSearch = search;
                 }
@@ -229,7 +230,7 @@ public class WikiMediator {
         Map<String, Integer> frequencyList = new ConcurrentHashMap<>();
 
         for (String request : this.timeMap.keySet()) {
-            List<LocalDateTime> requestList= this.timeMap.get(request);
+            List<LocalDateTime> requestList = this.timeMap.get(request);
             int count = 0;
             for (LocalDateTime time : requestList) {
                 LocalDateTime compareTime = currentTime.minusSeconds(30);
@@ -291,7 +292,8 @@ public class WikiMediator {
             LocalDateTime intervalTime = startingTime.plusSeconds(30);
             for (String request : this.requestMap.keySet()) {
                 for (LocalDateTime time : this.requestMap.get(request)) {
-                    if (time.isBefore(intervalTime) && (time.isAfter(startingTime) || time.isEqual(startingTime))) {
+                    if (time.isBefore(intervalTime)
+                            && (time.isAfter(startingTime) || time.isEqual(startingTime))) {
                         intervalRequests++;
                     }
                 }

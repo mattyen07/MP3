@@ -4,7 +4,7 @@ public class CacheObject implements Cacheable {
     private String id;
     private String text;
 
-    public CacheObject (String id, String text) {
+    public CacheObject(String id, String text) {
         this.id = id;
         this.text = text;
     }
@@ -12,7 +12,7 @@ public class CacheObject implements Cacheable {
     public String id() {
         return this.id;
     }
-    public String getText(){
+    public String getText() {
         return this.text;
     }
 }

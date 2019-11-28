@@ -190,7 +190,7 @@ public class Tests {
         wm.getPage("hockey");
         try {
             TimeUnit.SECONDS.sleep(30);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         wm.getPage("hockey");
@@ -215,7 +215,7 @@ public class Tests {
         wm.getPage("hockey");
         try {
             TimeUnit.SECONDS.sleep(30);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         wm.getPage("hockey");
@@ -278,7 +278,7 @@ public class Tests {
         wm.getPage("soccer");
         try {
             TimeUnit.SECONDS.sleep(30);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         wm.getPage("ultimate");
@@ -301,7 +301,7 @@ public class Tests {
         wm.getPage("soccer");
         try {
             TimeUnit.SECONDS.sleep(31);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         wm.getPage("ultimate");
@@ -326,7 +326,7 @@ public class Tests {
         wm.getPage("hockey");
         try {
             TimeUnit.SECONDS.sleep(40);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         wm.simpleSearch("soccer", 3);
@@ -343,7 +343,7 @@ public class Tests {
         wm.simpleSearch("Obama", 3);
         try {
             TimeUnit.SECONDS.sleep(35);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         wm.zeitgeist(2);
@@ -378,10 +378,10 @@ public class Tests {
         wm.simpleSearch("soccer", 9);
         try {
             TimeUnit.SECONDS.sleep(35);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
-        wm.getConnectedPages("hockey",0);
+        wm.getConnectedPages("hockey", 0);
         wm.getPage("hockey");
         wm.simpleSearch("hockey", 20);
         wm.getPage("hockey");
@@ -396,12 +396,12 @@ public class Tests {
     public void putTest1() {
         Cache cache = new Cache();
         CacheObject co = new CacheObject("hockey", "aa");
-        assertTrue (cache.put(co));
+        assertTrue(cache.put(co));
     }
 
     @Test
     public void putTest2() {
-        Cache cache = new Cache(1,5);
+        Cache cache = new Cache(1, 5);
         CacheObject co = new CacheObject("hockey", "aa");
         CacheObject co1 = new CacheObject("soccer", "aa");
         cache.put(co);
@@ -410,7 +410,7 @@ public class Tests {
 
     @Test
     public void putTest3() {
-        Cache cache = new Cache(1,5);
+        Cache cache = new Cache(1, 5);
         CacheObject co = new CacheObject("hockey", "aa");
         cache.put(co);
         assertFalse(cache.put(co));
@@ -418,7 +418,7 @@ public class Tests {
 
     @Test
     public void putTest4() {
-        Cache cache = new Cache (2,30);
+        Cache cache = new Cache(2, 30);
         CacheObject co = new CacheObject("hockey", "aa");
         cache.put(co);
         assertFalse(cache.put(co));
@@ -426,14 +426,14 @@ public class Tests {
 
     @Test
     public void putTest5() {
-        Cache cache = new Cache (2,30);
+        Cache cache = new Cache(2, 30);
         CacheObject co = new CacheObject("hockey", "aa");
         CacheObject co1 = new CacheObject("soccer", "aa");
         CacheObject co2 = new CacheObject("ultimate", "aa");
         cache.put(co);
         try {
             TimeUnit.SECONDS.sleep(2);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         cache.put(co1);
@@ -443,13 +443,13 @@ public class Tests {
 
     @Test
     public void putTest6() {
-        Cache cache = new Cache (2,30);
+        Cache cache = new Cache(2, 30);
         CacheObject co = new CacheObject("hockey", "aa");
         CacheObject co1 = new CacheObject("soccer", "aa");
         cache.put(co);
         try {
             TimeUnit.SECONDS.sleep(2);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         cache.put(co1);
@@ -474,12 +474,12 @@ public class Tests {
 
     @Test (expected = NotFoundException.class)
     public void getTest3() throws NotFoundException {
-        Cache cache = new Cache(3,3);
+        Cache cache = new Cache(3, 3);
         CacheObject co = new CacheObject("hockey", "aa");
         cache.put(co);
         try {
             TimeUnit.SECONDS.sleep(4);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         assertEquals(co, cache.get(co.id()));
@@ -487,7 +487,7 @@ public class Tests {
 
     @Test (expected = NotFoundException.class)
     public void getTest4() throws NotFoundException {
-        Cache cache = new Cache (2,30);
+        Cache cache = new Cache(2, 30);
         CacheObject co = new CacheObject("hockey", "aa");
         CacheObject co1 = new CacheObject("soccer", "aa");
         CacheObject co2 = new CacheObject("ultimate", "aa");
@@ -497,7 +497,7 @@ public class Tests {
         try {
             TimeUnit.SECONDS.sleep(1);
             cache.get(co.id());
-        } catch(Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
 
@@ -512,7 +512,7 @@ public class Tests {
         cache.put(co);
         try {
             TimeUnit.SECONDS.sleep(2);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         assertTrue(cache.touch(co.id()));
@@ -541,7 +541,7 @@ public class Tests {
         cache.put(co);
         try {
             TimeUnit.SECONDS.sleep(2);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         assertTrue(cache.update(co));
@@ -553,7 +553,7 @@ public class Tests {
         CacheObject co = new CacheObject("hockey", "aa");
         try {
             TimeUnit.SECONDS.sleep(2);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             fail();
         }
         assertFalse(cache.update(co));
