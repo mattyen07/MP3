@@ -41,6 +41,12 @@ public class Tests {
         wm.simpleSearch("Barack Obama", 2);
         assertEquals(answer, wm.simpleSearch("Barack Obama", 10));
     }
+    @Test
+    public void simpleSearchTest3() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        assertEquals(answer, wm.simpleSearch("Barack Obama", 0));
+    }
 
     @Test
     public void getPageTest1() {
@@ -140,6 +146,22 @@ public class Tests {
     }
 
     @Test
+    public void zeitgeistTest3() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("ultimate");
+
+        assertEquals(answer, wm.zeitgeist(0));
+    }
+
+    @Test
     public void trendingTest1() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
@@ -207,6 +229,22 @@ public class Tests {
         answer.add("ultimate");
 
         assertEquals(answer, wm.trending(3));
+    }
+
+    @Test
+    public void trendingTest4() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("ultimate");
+
+        assertEquals(answer, wm.trending(0));
     }
 
     @Test
@@ -357,15 +395,15 @@ public class Tests {
     @Test
     public void putTest1() {
         Cache cache = new Cache();
-        CacheObject co = new CacheObject("hockey");
+        CacheObject co = new CacheObject("hockey", "aa");
         assertTrue (cache.put(co));
     }
 
     @Test
     public void putTest2() {
         Cache cache = new Cache(1,5);
-        CacheObject co = new CacheObject("hockey");
-        CacheObject co1 = new CacheObject("soccer");
+        CacheObject co = new CacheObject("hockey", "aa");
+        CacheObject co1 = new CacheObject("soccer", "aa");
         cache.put(co);
         assertTrue(cache.put(co1));
     }
@@ -373,7 +411,7 @@ public class Tests {
     @Test
     public void putTest3() {
         Cache cache = new Cache(1,5);
-        CacheObject co = new CacheObject("hockey");
+        CacheObject co = new CacheObject("hockey", "aa");
         cache.put(co);
         assertFalse(cache.put(co));
     }
@@ -381,7 +419,7 @@ public class Tests {
     @Test
     public void putTest4() {
         Cache cache = new Cache (2,30);
-        CacheObject co = new CacheObject("hockey");
+        CacheObject co = new CacheObject("hockey", "aa");
         cache.put(co);
         assertFalse(cache.put(co));
     }
@@ -389,9 +427,9 @@ public class Tests {
     @Test
     public void putTest5() {
         Cache cache = new Cache (2,30);
-        CacheObject co = new CacheObject("hockey");
-        CacheObject co1 = new CacheObject("soccer");
-        CacheObject co2 = new CacheObject("ultimate");
+        CacheObject co = new CacheObject("hockey", "aa");
+        CacheObject co1 = new CacheObject("soccer", "aa");
+        CacheObject co2 = new CacheObject("ultimate", "aa");
         cache.put(co);
         try {
             TimeUnit.SECONDS.sleep(2);
@@ -404,9 +442,25 @@ public class Tests {
     }
 
     @Test
+    public void putTest6() {
+        Cache cache = new Cache (2,30);
+        CacheObject co = new CacheObject("hockey", "aa");
+        CacheObject co1 = new CacheObject("soccer", "aa");
+        cache.put(co);
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (Exception e) {
+            fail();
+        }
+        cache.put(co1);
+
+        assertFalse(cache.put(co1));
+    }
+
+    @Test
     public void getTest1() throws NotFoundException {
         Cache cache = new Cache();
-        CacheObject co = new CacheObject("hockey");
+        CacheObject co = new CacheObject("hockey", "aa");
         cache.put(co);
         assertEquals(co, cache.get(co.id()));
     }
@@ -414,14 +468,14 @@ public class Tests {
     @Test (expected = NotFoundException.class)
     public void getTest2() throws NotFoundException {
         Cache cache = new Cache();
-        CacheObject co = new CacheObject("hockey");
+        CacheObject co = new CacheObject("hockey", "aa");
         assertEquals(co, cache.get(co.id()));
     }
 
     @Test (expected = NotFoundException.class)
     public void getTest3() throws NotFoundException {
         Cache cache = new Cache(3,3);
-        CacheObject co = new CacheObject("hockey");
+        CacheObject co = new CacheObject("hockey", "aa");
         cache.put(co);
         try {
             TimeUnit.SECONDS.sleep(4);
@@ -434,9 +488,9 @@ public class Tests {
     @Test (expected = NotFoundException.class)
     public void getTest4() throws NotFoundException {
         Cache cache = new Cache (2,30);
-        CacheObject co = new CacheObject("hockey");
-        CacheObject co1 = new CacheObject("soccer");
-        CacheObject co2 = new CacheObject("ultimate");
+        CacheObject co = new CacheObject("hockey", "aa");
+        CacheObject co1 = new CacheObject("soccer", "aa");
+        CacheObject co2 = new CacheObject("ultimate", "aa");
         cache.put(co);
         cache.put(co1);
 
@@ -454,7 +508,7 @@ public class Tests {
     @Test
     public void touchTest1() {
         Cache cache = new Cache();
-        CacheObject co = new CacheObject("hockey");
+        CacheObject co = new CacheObject("hockey", "aa");
         cache.put(co);
         try {
             TimeUnit.SECONDS.sleep(2);
@@ -467,15 +521,15 @@ public class Tests {
     @Test
     public void touchTest2() {
         Cache cache = new Cache();
-        CacheObject co = new CacheObject("hockey");
+        CacheObject co = new CacheObject("hockey", "aa");
         assertFalse(cache.touch(co.id()));
     }
 
     @Test
     public void touchTest3() {
         Cache cache = new Cache();
-        CacheObject co = new CacheObject("hockey");
-        CacheObject co1 = new CacheObject("soccer");
+        CacheObject co = new CacheObject("hockey", "aa");
+        CacheObject co1 = new CacheObject("soccer", "aa");
         cache.put(co);
         assertFalse(cache.touch(co1.id()));
     }
@@ -483,7 +537,7 @@ public class Tests {
     @Test
     public void updateTest1() {
         Cache cache = new Cache();
-        CacheObject co = new CacheObject("hockey");
+        CacheObject co = new CacheObject("hockey", "aa");
         cache.put(co);
         try {
             TimeUnit.SECONDS.sleep(2);
@@ -496,7 +550,7 @@ public class Tests {
     @Test
     public void updateTest2() {
         Cache cache = new Cache();
-        CacheObject co = new CacheObject("hockey");
+        CacheObject co = new CacheObject("hockey", "aa");
         try {
             TimeUnit.SECONDS.sleep(2);
         } catch (Exception e) {

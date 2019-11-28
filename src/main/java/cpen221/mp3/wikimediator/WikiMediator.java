@@ -37,7 +37,7 @@ public class WikiMediator {
         this.popularityMap = new ConcurrentHashMap<>();
         this.timeMap = new ConcurrentHashMap<>();
         this.requestMap = new ConcurrentHashMap<>();
-        this.cache = new Cache<>(256,3600);
+        this.cache = new Cache<>(256,43200);
         this.startTime = LocalDateTime.now();
 
         this.requestMap.put("search", new ArrayList<>());
@@ -54,14 +54,20 @@ public class WikiMediator {
      * @param limit is the maximum number of items that simpleSearch will return
      * @modifies requestMap, adds a time the method was called into the request map
      * @return  a list of strings with limit strings that appear from the query using
-     * wikipedia's search service
+     * wikipedia's search service.
+     * If limit is equal to 0, returns an empty list of strings
      */
     public List<String> simpleSearch(String query, int limit) {
         addToMaps(query);
         List<LocalDateTime> requestDates = this.requestMap.get("search");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("search", requestDates);
-        return this.wiki.search(query, limit);
+
+        if (limit == 0) {
+            return new ArrayList<>();
+        } else {
+            return this.wiki.search(query, limit);
+        }
     }
 
     /**
@@ -81,7 +87,7 @@ public class WikiMediator {
             this.cache.update(co);
         } catch (NotFoundException e) {
             text = this.wiki.getPageText(pageTitle);
-            this.cache.put(new CacheObject(pageTitle));
+            this.cache.put(new CacheObject(pageTitle, text));
         }
 
         List<LocalDateTime> requestDates = this.requestMap.get("getPage");
@@ -149,7 +155,7 @@ public class WikiMediator {
     }
 
     /**
-     * Recursive Helper method for getConnectedPAges
+     * Recursive Helper method for getConnectedPages
      * Base Case is if hops <=0, returns a list of just the current page title
      * otherwise subtracts 1 from hops and calls helper again for each link in the list
      * @param pageTitle initial page we are starting from
@@ -177,10 +183,12 @@ public class WikiMediator {
     }
 
     /**
-     * Returns
+     * Returns a list of the most common strings used in the simple search and getPage methods
      * @param limit the maximum number of items to return from the method call
      * @modifies requestMap, adds a time the method was called into the request map
-     * @return
+     * @return a list of strings where strings are sorted by the amount of times they have been
+     * called by the getPage or simple search method. These strings are sorted into non-increasing
+     * order of appearance.
      */
     public List<String> zeitgeist(int limit) {
         List<String> mostCommon = new ArrayList<>();
@@ -207,10 +215,13 @@ public class WikiMediator {
     }
 
     /**
-     *
-     * @param limit
+     * Returns a list of the most common Strings used in the getPage and simpleSearch method
+     * from the past 30 seconds
+     * @param limit the maximum number of items to return from method call
      * @modifies requestMap, adds a time the method was called into the request map
-     * @return
+     * @return a list of strings where strings are sorted by the amount of times they have been
+     * called by the getPage or simple search method. These strings are sorted into non-increasing
+     * order of appearance.
      */
     public List<String> trending(int limit) {
         List<String> trendingList = new ArrayList<>();
@@ -253,9 +264,11 @@ public class WikiMediator {
     }
 
     /**
-     *
+     * Returns the maximum number of requests in any 30 second interval during the duration of
+     * an instance of WikiMediator
      * @modifies requestMap, adds a time the method was called into the request map
-     * @return
+     * @return the maximum number of request in any 30 second interval. Will always be >= 1
+     *
      */
     public int peakLoad30s() {
         List<LocalDateTime> requestDates = this.requestMap.get("peakLoad");

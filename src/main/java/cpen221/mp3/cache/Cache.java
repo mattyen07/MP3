@@ -1,6 +1,5 @@
 package cpen221.mp3.cache;
 
-
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -79,11 +78,10 @@ public class Cache<T extends Cacheable> {
     /**
      * @param id the identifier of the object to be retrieved
      * @return the object that matches the identifier from the cache
+     * @throws NotFoundException if object id can't be found in the cache
      */
     public T get(String id) throws NotFoundException {
 
-        /* Do not return null. Throw a suitable checked exception when an object
-            is not in the cache. */
         for (T object : this.cacheMap.keySet()) {
             if (object.id().equals(id)) {
                 LocalDateTime expiry = this.cacheMap.get(object).getExpiryTime();
