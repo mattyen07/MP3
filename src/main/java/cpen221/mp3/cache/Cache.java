@@ -58,13 +58,13 @@ public class Cache<T extends Cacheable> {
         }
         if (this.cacheMap.size() == this.capacity && !this.cacheMap.containsKey(t)) {
             LocalDateTime time = LocalDateTime.now();
-            LocalDateTime maxTime = LocalDateTime.now();
+            LocalDateTime furthestAccessTime = LocalDateTime.now();
             T removeObject = t;
 
             for (T key: this.cacheMap.keySet()) {
-                if (this.cacheMap.get(key).getLastAccess().isBefore(maxTime)) {
+                if (this.cacheMap.get(key).getLastAccess().isBefore(furthestAccessTime)) {
                     removeObject = key;
-                    maxTime = this.cacheMap.get(key).getLastAccess();
+                    furthestAccessTime = this.cacheMap.get(key).getLastAccess();
                 }
             }
 
