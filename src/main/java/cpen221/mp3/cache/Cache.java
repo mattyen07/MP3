@@ -66,29 +66,30 @@ public class Cache<T extends Cacheable> {
      * @param t object to be placed in cache
      * @return true if t is successfully placed in cache
      */
-    /* synchronize put */
     public boolean put(T t) {
 
-        if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
-            TimePair add = new TimePair(LocalDateTime.now(), LocalDateTime.now().plusSeconds(this.timeout));
-            this.cacheMap.put(t, add);
-            return true;
-        }
-        if (this.cacheMap.size() == this.capacity && !this.cacheMap.containsKey(t)) {
-            LocalDateTime time = LocalDateTime.now();
-            LocalDateTime furthestAccessTime = LocalDateTime.now();
-            T removeObject = t;
-
-            for (T key: this.cacheMap.keySet()) {
-                if (this.cacheMap.get(key).getLastAccess().isBefore(furthestAccessTime)) {
-                    removeObject = key;
-                    furthestAccessTime = this.cacheMap.get(key).getLastAccess();
-                }
+        synchronized(this) {
+            if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
+                TimePair add = new TimePair(LocalDateTime.now(), LocalDateTime.now().plusSeconds(this.timeout));
+                this.cacheMap.put(t, add);
+                return true;
             }
+            if (this.cacheMap.size() == this.capacity && !this.cacheMap.containsKey(t)) {
+                LocalDateTime time = LocalDateTime.now();
+                LocalDateTime furthestAccessTime = LocalDateTime.now();
+                T removeObject = t;
 
-            this.cacheMap.remove(removeObject);
-            this.cacheMap.put(t, new TimePair(time, LocalDateTime.now().plusSeconds(this.timeout)));
-            return true;
+                for (T key : this.cacheMap.keySet()) {
+                    if (this.cacheMap.get(key).getLastAccess().isBefore(furthestAccessTime)) {
+                        removeObject = key;
+                        furthestAccessTime = this.cacheMap.get(key).getLastAccess();
+                    }
+                }
+
+                this.cacheMap.remove(removeObject);
+                this.cacheMap.put(t, new TimePair(time, LocalDateTime.now().plusSeconds(this.timeout)));
+                return true;
+            }
         }
 
         return false;
@@ -100,11 +101,14 @@ public class Cache<T extends Cacheable> {
      * @throws NotFoundException if object id can't be found in the cache
      */
     public T get(String id) throws NotFoundException {
-        for (T object : this.cacheMap.keySet()) {
-            if (object.id().equals(id)) {
-                LocalDateTime expiry = this.cacheMap.get(object).getExpiryTime();
-                this.cacheMap.replace(object, new TimePair(LocalDateTime.now(), expiry));
-                return object;
+
+        synchronized(this) {
+            for (T object : this.cacheMap.keySet()) {
+                if (object.id().equals(id)) {
+                    LocalDateTime expiry = this.cacheMap.get(object).getExpiryTime();
+                    this.cacheMap.replace(object, new TimePair(LocalDateTime.now(), expiry));
+                    return object;
+                }
             }
         }
 
@@ -120,12 +124,15 @@ public class Cache<T extends Cacheable> {
      * @return true if object is successfully touched and false otherwise.
      */
     public boolean touch(String id) {
-        for (T object : this.cacheMap.keySet()) {
-            if (object.id().equals(id)) {
-                LocalDateTime update = this.cacheMap.get(object).getLastAccess();
-                TimePair replacePair = new TimePair(update, LocalDateTime.now().plusSeconds(this.timeout));
-                this.cacheMap.replace(object, replacePair);
-                return true;
+
+        synchronized (this) {
+            for (T object : this.cacheMap.keySet()) {
+                if (object.id().equals(id)) {
+                    LocalDateTime update = this.cacheMap.get(object).getLastAccess();
+                    TimePair replacePair = new TimePair(update, LocalDateTime.now().plusSeconds(this.timeout));
+                    this.cacheMap.replace(object, replacePair);
+                    return true;
+                }
             }
         }
 
@@ -141,11 +148,14 @@ public class Cache<T extends Cacheable> {
      * @return true if successful and false otherwise
      */
     public boolean update(T t) {
-        if (this.cacheMap.containsKey(t)) {
-            LocalDateTime update = this.cacheMap.get(t).getLastAccess();
-            TimePair replacePair = new TimePair(update, LocalDateTime.now().plusSeconds(this.timeout));
-            this.cacheMap.replace(t, replacePair);
-            return true;
+
+        synchronized(this) {
+            if (this.cacheMap.containsKey(t)) {
+                LocalDateTime update = this.cacheMap.get(t).getLastAccess();
+                TimePair replacePair = new TimePair(update, LocalDateTime.now().plusSeconds(this.timeout));
+                this.cacheMap.replace(t, replacePair);
+                return true;
+            }
         }
 
         return false;

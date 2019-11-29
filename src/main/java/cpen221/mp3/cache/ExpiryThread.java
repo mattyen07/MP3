@@ -5,7 +5,6 @@ import java.util.Set;
 import java.time.LocalDateTime;
 
 public class ExpiryThread<T extends Cacheable> implements Runnable {
-    private final Map<T, TimePair> cacheMap;
 
     /*
     RI: cacheMap objects with accurate TimePairs stored in cacheObjects.
@@ -15,6 +14,8 @@ public class ExpiryThread<T extends Cacheable> implements Runnable {
     /*
     AF: N/A, nothing abstract is being represented, just a thread operating on a map
      */
+
+    private final Map<T, TimePair> cacheMap;
 
     /**
      * Initializes new instance of ExpiryThread with a map of the objects in the cache.

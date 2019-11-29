@@ -70,7 +70,7 @@ public class WikiMediator {
 
         /* adds the method names into the requestMap */
         for (String name : this.methodNames) {
-            this.requestMap.put(name, new ArrayList<>());
+            this.requestMap.put(name, Collections.synchronizedList(new ArrayList<>()));
         }
     }
 
@@ -92,7 +92,7 @@ public class WikiMediator {
 
         /* adds the method names into the requestMap */
         for (String name : this.methodNames) {
-            this.requestMap.put(name, new ArrayList<>());
+            this.requestMap.put(name, Collections.synchronizedList(new ArrayList<>()));
         }
     }
 
@@ -154,7 +154,7 @@ public class WikiMediator {
     private synchronized void addToMap(String request) {
 
         if (!this.timeMap.containsKey(request)) {
-            ArrayList<LocalDateTime> timeList = new ArrayList<>();
+            List<LocalDateTime> timeList = Collections.synchronizedList(new ArrayList<>());
             timeList.add(LocalDateTime.now());
             this.timeMap.put(request, timeList);
         } else {
