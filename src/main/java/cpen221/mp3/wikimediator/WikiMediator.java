@@ -77,7 +77,7 @@ public class WikiMediator {
 
         /* adds the method names into the requestMap */
         for (String name : this.methodNames) {
-            this.requestMap.put(name, new ArrayList<>());
+            this.requestMap.put(name, Collections.synchronizedList(new ArrayList<>()));
         }
     }
 
@@ -99,7 +99,7 @@ public class WikiMediator {
 
         /* adds the method names into the requestMap */
         for (String name : this.methodNames) {
-            this.requestMap.put(name, new ArrayList<>());
+            this.requestMap.put(name, Collections.synchronizedList(new ArrayList<>()));
         }
     }
 
@@ -113,10 +113,11 @@ public class WikiMediator {
      * If limit is equal to 0, returns an empty list of strings
      */
     public List<String> simpleSearch(String query, int limit) {
-        addToMap(query);
         List<LocalDateTime> requestDates = this.requestMap.get("simpleSearch");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("simpleSearch", requestDates);
+
+        addToMap(query);
 
         if (limit == 0) {
             return new ArrayList<>();
@@ -133,6 +134,10 @@ public class WikiMediator {
      * @return a string that contains the text of the given page title
      */
     public String getPage(String pageTitle) {
+        List<LocalDateTime> requestDates = this.requestMap.get("getPage");
+        requestDates.add(LocalDateTime.now());
+        this.requestMap.replace("getPage", requestDates);
+
         String text;
         addToMap(pageTitle);
 
@@ -144,9 +149,6 @@ public class WikiMediator {
             this.cache.put(new CacheObject(pageTitle, text));
         }
 
-        List<LocalDateTime> requestDates = this.requestMap.get("getPage");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("getPage", requestDates);
         return text;
     }
 
@@ -161,7 +163,7 @@ public class WikiMediator {
     private synchronized void addToMap(String request) {
 
         if (!this.timeMap.containsKey(request)) {
-            ArrayList<LocalDateTime> timeList = new ArrayList<>();
+            List<LocalDateTime> timeList = Collections.synchronizedList(new ArrayList<>());
             timeList.add(LocalDateTime.now());
             this.timeMap.put(request, timeList);
         } else {
@@ -181,6 +183,10 @@ public class WikiMediator {
      * be found through links from the initial pageTitle
      */
     public List<String> getConnectedPages(String pageTitle, int hops) {
+        List<LocalDateTime> requestDates = this.requestMap.get("getConnectedPages");
+        requestDates.add(LocalDateTime.now());
+        this.requestMap.replace("getConnectedPages", requestDates);
+
         Set<String> pageLinks = new HashSet<>();
         pageLinks.add(pageTitle);
 
@@ -193,9 +199,6 @@ public class WikiMediator {
         ArrayList<String> connectedPages = new ArrayList<>(pageLinks);
         Collections.sort(connectedPages);
 
-        List<LocalDateTime> requestDates = this.requestMap.get("getConnectedPages");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("getConnectedPages", requestDates);
         return connectedPages;
     }
 
@@ -236,6 +239,10 @@ public class WikiMediator {
      * order of appearance.
      */
     public List<String> zeitgeist(int limit) {
+        List<LocalDateTime> requestDates = this.requestMap.get("zeitgeist");
+        requestDates.add(LocalDateTime.now());
+        this.requestMap.replace("zeitgeist", requestDates);
+
         List<String> mostCommon = new ArrayList<>();
         int maxOccurrences;
         int count = 0;
@@ -254,9 +261,6 @@ public class WikiMediator {
             mostCommon.add(mostOccurringSearch);
         }
 
-        List<LocalDateTime> requestDates = this.requestMap.get("zeitgeist");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("zeitgeist", requestDates);
         return mostCommon;
     }
 
@@ -270,6 +274,10 @@ public class WikiMediator {
      * order of appearance.
      */
     public List<String> trending(int limit) {
+        List<LocalDateTime> requestDates = this.requestMap.get("trending");
+        requestDates.add(LocalDateTime.now());
+        this.requestMap.replace("trending", requestDates);
+
         List<String> trendingList = new ArrayList<>();
         LocalDateTime currentTime = LocalDateTime.now();
         Map<String, Integer> frequencyList = new ConcurrentHashMap<>();
@@ -303,9 +311,6 @@ public class WikiMediator {
             trendingList.add(frequencyString);
         }
 
-        List<LocalDateTime> requestDates = this.requestMap.get("trending");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("trending", requestDates);
         return trendingList;
     }
 

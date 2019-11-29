@@ -1,6 +1,13 @@
 package cpen221.mp3.server;
 
 public class WikiMediatorServer {
+    /*
+    RI:
+     */
+
+    /*
+    AF:
+     */
 
     /**
      * Start a server at a given port number, with the ability to process
