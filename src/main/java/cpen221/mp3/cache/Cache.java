@@ -21,8 +21,8 @@ public class Cache<T extends Cacheable> {
      * Objects in the cache that have not been refreshed within the timeout period
      * are removed from the cache.
      *
-     * @param capacity the number of objects the cache can hold
-     * @param timeout  the duration an object should be in the cache before it times out
+     * @param capacity >=1 the number of objects the cache can hold.
+     * @param timeout >=0  the duration in seconds an object should be in the cache before it times out.
      */
     public Cache(int capacity, int timeout) {
 
@@ -49,6 +49,8 @@ public class Cache<T extends Cacheable> {
      * Add a value to the cache.
      * If the cache is full then remove the least recently accessed object to
      * make room for the new object.
+     * @param t object to be placed in cache
+     * @return true if t is successfully placed in cache
      */
     public boolean put(T t) {
         if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
@@ -99,7 +101,7 @@ public class Cache<T extends Cacheable> {
      * is delayed.
      *
      * @param id the identifier of the object to "touch"
-     * @return true if successful and false otherwise
+     * @return true if object is successfully touched and false otherwise.
      */
     public boolean touch(String id) {
         for (T object : this.cacheMap.keySet()) {
