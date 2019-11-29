@@ -76,6 +76,7 @@ public class Tests {
 
         assertEquals(answer, wm.getConnectedPages("Barack Obama", 0));
     }
+
     @Test
     public void getConnectedPagesTest2() {
         WikiMediator wm = new WikiMediator();
@@ -89,6 +90,7 @@ public class Tests {
 
         assertEquals(answer, wm.getConnectedPages("Barack Obama", 1));
     }
+
     @Test
     public void getConnectedPagesTest3() {
         WikiMediator wm = new WikiMediator();
@@ -357,6 +359,7 @@ public class Tests {
 
         assertEquals(9, wm.peakLoad30s());
     }
+    
     @Test
     public void peakLoadTest6() {
         WikiMediator wm = new WikiMediator();
