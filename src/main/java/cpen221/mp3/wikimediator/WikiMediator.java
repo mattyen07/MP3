@@ -36,6 +36,15 @@ public class WikiMediator {
     /* The starting time of the WikiMediator */
     private LocalDateTime startTime;
 
+    private final String[] methodNames =
+            new String[]{"search", "getPage", "connectedPages", "zeitgeist", "trending", "peakLoad"};
+
+    /**
+     * Constructs an instance of the WikiMediator.
+     * This instance has a new English Wikipedia access, a new default cache value
+     * and creates appropriate maps to store statistics in the WikiMediator
+     *
+     */
     public WikiMediator() {
         this.wiki = new Wiki("en.wikipedia.org");
         this.wiki.enableLogging(false);
@@ -45,12 +54,31 @@ public class WikiMediator {
         this.cache = new Cache<>(256, 43200);
         this.startTime = LocalDateTime.now();
 
-        this.requestMap.put("search", new ArrayList<>());
-        this.requestMap.put("getPage", new ArrayList<>());
-        this.requestMap.put("connectedPages", new ArrayList<>());
-        this.requestMap.put("zeitgeist", new ArrayList<>());
-        this.requestMap.put("trending", new ArrayList<>());
-        this.requestMap.put("peakLoad", new ArrayList<>());
+        /* adds the method names into the requestMap */
+        for (String name : this.methodNames) {
+            this.requestMap.put(name, new ArrayList<>());
+        }
+    }
+
+
+    /**
+     * Constructs an instance of the WikiMediator using an existing Cache object
+     * 
+     * @param cache is not null
+     */
+    public WikiMediator(Cache cache) {
+        this.wiki = new Wiki("en.wikipedia.org");
+        this.wiki.enableLogging(false);
+        this.popularityMap = new ConcurrentHashMap<>();
+        this.timeMap = new ConcurrentHashMap<>();
+        this.requestMap = new ConcurrentHashMap<>();
+        this.cache = cache;
+        this.startTime = LocalDateTime.now();
+
+        /* adds the method names into the requestMap */
+        for (String name : this.methodNames) {
+            this.requestMap.put(name, new ArrayList<>());
+        }
     }
 
     /**

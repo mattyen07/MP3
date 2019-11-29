@@ -50,7 +50,7 @@ public class Tests {
 
     @Test
     public void getPageTest1() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache(256, 43200));
         String answer;
         Wiki wiki = new Wiki("en.wikipedia.org");
         answer = wiki.getPageText("Barack Obama");
@@ -59,7 +59,7 @@ public class Tests {
 
     @Test
     public void getPageTest2() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache(256, 43200));
         String answer;
         Wiki wiki = new Wiki("en.wikipedia.org");
         answer = wiki.getPageText("Barack Obama");
@@ -112,7 +112,7 @@ public class Tests {
 
     @Test
     public void zeitgeistTest1() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
         List<String> answer = new ArrayList<>();
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -130,7 +130,7 @@ public class Tests {
 
     @Test
     public void zeitgeistTest2() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
         List<String> answer = new ArrayList<>();
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -149,7 +149,7 @@ public class Tests {
 
     @Test
     public void zeitgeistTest3() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
         List<String> answer = new ArrayList<>();
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -165,7 +165,7 @@ public class Tests {
 
     @Test
     public void trendingTest1() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
         List<String> answer = new ArrayList<>();
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -184,7 +184,7 @@ public class Tests {
 
     @Test
     public void trendingTest2() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
         List<String> answer = new ArrayList<>();
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -209,7 +209,7 @@ public class Tests {
 
     @Test
     public void trendingTest3() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
         List<String> answer = new ArrayList<>();
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -235,7 +235,7 @@ public class Tests {
 
     @Test
     public void trendingTest4() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
         List<String> answer = new ArrayList<>();
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -251,7 +251,7 @@ public class Tests {
 
     @Test
     public void peakLoadTest1() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
 
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -269,7 +269,7 @@ public class Tests {
 
     @Test
     public void peakLoadTest2() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
 
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -292,7 +292,7 @@ public class Tests {
 
     @Test
     public void peakLoadTest3() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
 
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -315,7 +315,7 @@ public class Tests {
 
     @Test
     public void peakLoadTest4() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
 
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -338,7 +338,7 @@ public class Tests {
 
     @Test
     public void peakLoadTest5() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
 
         wm.simpleSearch("Obama", 1);
         wm.simpleSearch("Obama", 2);
@@ -362,14 +362,14 @@ public class Tests {
 
     @Test
     public void peakLoadTest6() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
 
         assertEquals(1, wm.peakLoad30s());
     }
 
     @Test
     public void peakLoadTest7() {
-        WikiMediator wm = new WikiMediator();
+        WikiMediator wm = new WikiMediator(new Cache());
         wm.getConnectedPages("Galojan", 1);
         wm.simpleSearch("hockey", 3);
         wm.getPage("hockey");
