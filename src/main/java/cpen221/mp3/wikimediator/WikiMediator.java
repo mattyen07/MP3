@@ -36,6 +36,12 @@ public class WikiMediator {
     /* The starting time of the WikiMediator */
     private LocalDateTime startTime;
 
+    /**
+     * Constructs an instance of the WikiMediator.
+     * This instance has a new English Wikipedia access, a new default cache value
+     * and creates appropriate maps to store statistics in the WikiMediator
+     *
+     */
     public WikiMediator() {
         this.wiki = new Wiki("en.wikipedia.org");
         this.wiki.enableLogging(false);
@@ -43,6 +49,24 @@ public class WikiMediator {
         this.timeMap = new ConcurrentHashMap<>();
         this.requestMap = new ConcurrentHashMap<>();
         this.cache = new Cache<>(256, 43200);
+        this.startTime = LocalDateTime.now();
+
+        this.requestMap.put("search", new ArrayList<>());
+        this.requestMap.put("getPage", new ArrayList<>());
+        this.requestMap.put("connectedPages", new ArrayList<>());
+        this.requestMap.put("zeitgeist", new ArrayList<>());
+        this.requestMap.put("trending", new ArrayList<>());
+        this.requestMap.put("peakLoad", new ArrayList<>());
+    }
+
+
+    public WikiMediator(Cache cache) {
+        this.wiki = new Wiki("en.wikipedia.org");
+        this.wiki.enableLogging(false);
+        this.popularityMap = new ConcurrentHashMap<>();
+        this.timeMap = new ConcurrentHashMap<>();
+        this.requestMap = new ConcurrentHashMap<>();
+        this.cache = cache;
         this.startTime = LocalDateTime.now();
 
         this.requestMap.put("search", new ArrayList<>());
