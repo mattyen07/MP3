@@ -359,7 +359,7 @@ public class Tests {
 
         assertEquals(9, wm.peakLoad30s());
     }
-    
+
     @Test
     public void peakLoadTest6() {
         WikiMediator wm = new WikiMediator();
