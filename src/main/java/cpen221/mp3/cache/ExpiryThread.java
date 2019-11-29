@@ -4,10 +4,10 @@ import java.util.Map;
 import java.util.Set;
 import java.time.LocalDateTime;
 
-public class MyThread<T extends Cacheable> implements Runnable {
+public class ExpiryThread<T extends Cacheable> implements Runnable {
     private final Map<T, TimePair> cacheMap;
 
-    public MyThread(Map<T, TimePair> map) {
+    public ExpiryThread(Map<T, TimePair> map) {
         this.cacheMap = map;
 
     }

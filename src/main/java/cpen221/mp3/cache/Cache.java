@@ -31,7 +31,7 @@ public class Cache<T extends Cacheable> {
         this.timeout = timeout;
 
         /* starts the auto clear expiry thread */
-        Runnable expiry = new MyThread<>(this.cacheMap);
+        Runnable expiry = new ExpiryThread<>(this.cacheMap);
         Thread expiryThread = new Thread(expiry);
         expiryThread.start();
     }
@@ -82,7 +82,6 @@ public class Cache<T extends Cacheable> {
      * @throws NotFoundException if object id can't be found in the cache
      */
     public T get(String id) throws NotFoundException {
-
         for (T object : this.cacheMap.keySet()) {
             if (object.id().equals(id)) {
                 LocalDateTime expiry = this.cacheMap.get(object).getExpiryTime();
@@ -130,6 +129,7 @@ public class Cache<T extends Cacheable> {
             this.cacheMap.replace(t, replacePair);
             return true;
         }
+
         return false;
     }
 
