@@ -25,7 +25,7 @@ public class WikiMediator {
      */
 
     /*
-    AF:
+    AF(wm):
      */
 
     /* Default Cache Capacity */
@@ -51,11 +51,12 @@ public class WikiMediator {
 
     /* The names of all methods in the WikiMediator Class */
     private final String[] methodNames =
-            new String[]{"simpleSearch", "getPage", "getConnectedPages", "zeitgeist", "trending", "peakLoad30s"};
+            new String[]{"simpleSearch", "getPage", "getConnectedPages",
+                    "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
 
     /**
      * Constructs an instance of the WikiMediator.
-     * This instance has a new English Wikipedia access, a new default cache value
+     * This instance creates a new English Wikipedia access, a new default cache object
      * and creates appropriate maps to store statistics in the WikiMediator
      *
      */
@@ -76,8 +77,10 @@ public class WikiMediator {
 
     /**
      * Constructs an instance of the WikiMediator using an existing Cache object
-     *
+     * Creates a new English Wikipedia access point, and appropriate maps to store
+     * statistics in the WikiMediator instance
      * @param cache is not null
+     *
      */
     public WikiMediator(Cache cache) {
         this.wiki = new Wiki("en.wikipedia.org");
