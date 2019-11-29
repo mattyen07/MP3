@@ -51,7 +51,7 @@ public class WikiMediator {
 
     /* The names of all methods in the WikiMediator Class */
     private final String[] methodNames =
-            new String[]{"search", "getPage", "connectedPages", "zeitgeist", "trending", "peakLoad"};
+            new String[]{"simpleSearch", "getPage", "getConnectedPages", "zeitgeist", "trending", "peakLoad30s"};
 
     /**
      * Constructs an instance of the WikiMediator.
@@ -104,9 +104,9 @@ public class WikiMediator {
      */
     public List<String> simpleSearch(String query, int limit) {
         addToMap(query);
-        List<LocalDateTime> requestDates = this.requestMap.get("search");
+        List<LocalDateTime> requestDates = this.requestMap.get("simpleSearch");
         requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("search", requestDates);
+        this.requestMap.replace("simpleSearch", requestDates);
 
         if (limit == 0) {
             return new ArrayList<>();
@@ -150,14 +150,14 @@ public class WikiMediator {
      */
     private synchronized void addToMap(String request) {
 
-        if (!timeMap.containsKey(request)) {
+        if (!this.timeMap.containsKey(request)) {
             ArrayList<LocalDateTime> timeList = new ArrayList<>();
             timeList.add(LocalDateTime.now());
-            timeMap.put(request, timeList);
+            this.timeMap.put(request, timeList);
         } else {
-            List<LocalDateTime> timeList = timeMap.get(request);
+            List<LocalDateTime> timeList = this.timeMap.get(request);
             timeList.add(LocalDateTime.now());
-            timeMap.replace(request, timeList);
+            this.timeMap.replace(request, timeList);
         }
     }
 
@@ -183,9 +183,9 @@ public class WikiMediator {
         ArrayList<String> connectedPages = new ArrayList<>(pageLinks);
         Collections.sort(connectedPages);
 
-        List<LocalDateTime> requestDates = this.requestMap.get("connectedPages");
+        List<LocalDateTime> requestDates = this.requestMap.get("getConnectedPages");
         requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("connectedPages", requestDates);
+        this.requestMap.replace("getConnectedPages", requestDates);
         return connectedPages;
     }
 
@@ -303,13 +303,15 @@ public class WikiMediator {
      * Returns the maximum number of requests in any 30 second interval during the duration of
      * an instance of WikiMediator
      * @modifies requestMap, adds a time the method was called into the request map
-     * @return the maximum number of request in any 30 second interval. Will always be >= 1
+     * @return the maximum number of request in any 30 second interval.
+     * The return value will always be >= 1 since we consider the method call of peakLoad30s
+     * to be within the last 30 seconds
      *
      */
     public int peakLoad30s() {
-        List<LocalDateTime> requestDates = this.requestMap.get("peakLoad");
+        List<LocalDateTime> requestDates = this.requestMap.get("peakLoad30s");
         requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("peakLoad", requestDates);
+        this.requestMap.replace("peakLoad30s", requestDates);
         LocalDateTime startingTime = this.startTime;
         LocalDateTime endTime = LocalDateTime.now().minusSeconds(29);
         int maxLoad = 0;
