@@ -25,7 +25,14 @@ public class WikiMediator {
      */
 
     /*
-    AF(wm):
+    AF(wm): A mediator between the user and wikipedia such that
+            cache is the cache used by the WikiMediator
+            wiki is the instance of wikipedia used by the wikiMediator.
+            timeMap is a map of all searches/queries that are made to the times that they were made.
+            requestMap is a map of all method calls to the times that said methods were called.
+            methodNames is an array of all non-constructor public methods.
+
+
      */
 
     /* Default Cache Capacity */
@@ -40,7 +47,7 @@ public class WikiMediator {
     /* The Cache Instance of the WikiMediator */
     private Cache cache;
 
-    /* The time map of strings to the time they were used */
+    /* The time map of searches and queries (strings) to the time they were made */
     private Map<String, List<LocalDateTime>> timeMap;
 
     /* The request map of a method to the time the method was called */
