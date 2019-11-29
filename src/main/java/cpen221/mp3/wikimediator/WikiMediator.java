@@ -25,7 +25,7 @@ public class WikiMediator {
      */
 
     /*
-    AF(wm): 
+    AF(wm):
      */
 
     /* Default Cache Capacity */
