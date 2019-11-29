@@ -16,13 +16,22 @@ import fastily.jwiki.core.Wiki;
 
 public class WikiMediator {
     /*
-     RI:
+     RI: methodNames is not null and contains all public methods within the WikiMediator Class
+         wiki is not null and is the English domain of Wikipedia
+         cache is not null
+         timeMap is not null
+         requestMap is not null
+         startTime is not null
+     */
+
+    /*
+    AF:
      */
 
     /* Default Cache Capacity */
     private static final int DEFAULTCAPACITY = 256;
 
-    /* Default Cache Expirty Time */
+    /* Default Cache Expiry Time */
     private static final int DEFAULTTIMEOUT = 43200;
 
     /* The Wikipedia Instance of the WikiMediator */
@@ -30,9 +39,6 @@ public class WikiMediator {
 
     /* The Cache Instance of the WikiMediator */
     private Cache cache;
-
-    /* The popularity map of strings to number of requests */
-    private Map<String, Integer> popularityMap;
 
     /* The time map of strings to the time they were used */
     private Map<String, List<LocalDateTime>> timeMap;
@@ -43,6 +49,7 @@ public class WikiMediator {
     /* The starting time of the WikiMediator */
     private LocalDateTime startTime;
 
+    /* The names of all methods in the WikiMediator Class */
     private final String[] methodNames =
             new String[]{"search", "getPage", "connectedPages", "zeitgeist", "trending", "peakLoad"};
 
@@ -55,7 +62,6 @@ public class WikiMediator {
     public WikiMediator() {
         this.wiki = new Wiki("en.wikipedia.org");
         this.wiki.enableLogging(false);
-        this.popularityMap = new ConcurrentHashMap<>();
         this.timeMap = new ConcurrentHashMap<>();
         this.requestMap = new ConcurrentHashMap<>();
         this.cache = new Cache<>(WikiMediator.DEFAULTCAPACITY, WikiMediator.DEFAULTTIMEOUT);
@@ -76,7 +82,6 @@ public class WikiMediator {
     public WikiMediator(Cache cache) {
         this.wiki = new Wiki("en.wikipedia.org");
         this.wiki.enableLogging(false);
-        this.popularityMap = new ConcurrentHashMap<>();
         this.timeMap = new ConcurrentHashMap<>();
         this.requestMap = new ConcurrentHashMap<>();
         this.cache = cache;
@@ -98,7 +103,7 @@ public class WikiMediator {
      * If limit is equal to 0, returns an empty list of strings
      */
     public List<String> simpleSearch(String query, int limit) {
-        addToMaps(query);
+        addToMap(query);
         List<LocalDateTime> requestDates = this.requestMap.get("search");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("search", requestDates);
@@ -119,7 +124,7 @@ public class WikiMediator {
      */
     public String getPage(String pageTitle) {
         String text;
-        addToMaps(pageTitle);
+        addToMap(pageTitle);
 
         try {
             CacheObject co = (CacheObject) this.cache.get(pageTitle);
@@ -139,20 +144,11 @@ public class WikiMediator {
      * Helper method to add request to the instance popularity map and instance time map.
      * Method is synchronized so only one thread can access and add to map at the same time
      * @param request the query or pageTitle to be added to the map
-     * @modifies popularityMap, adds a query or pageTitle if it is not in the map,
-     *                          otherwise, increases the count of the key by 1
      * @modifies timeMap, adds a query or pageTitle if it is not in the map,
      *                    otherwise, adds the current time to the list of times the
      *                    request has been accessed
      */
-    private synchronized void addToMaps(String request) {
-        if (popularityMap.containsKey(request)) {
-            int count = popularityMap.get(request);
-            count++;
-            popularityMap.replace(request, count);
-        } else {
-            popularityMap.put(request, 1);
-        }
+    private synchronized void addToMap(String request) {
 
         if (!timeMap.containsKey(request)) {
             ArrayList<LocalDateTime> timeList = new ArrayList<>();
@@ -237,10 +233,10 @@ public class WikiMediator {
 
         while (count < limit) {
             maxOccurrences = 0;
-            for (String search : this.popularityMap.keySet()) {
-                if ((this.popularityMap.get(search) > maxOccurrences)
+            for (String search : this.timeMap.keySet()) {
+                if ((this.timeMap.get(search).size() > maxOccurrences)
                         && !mostCommon.contains(search)) {
-                    maxOccurrences = this.popularityMap.get(search);
+                    maxOccurrences = this.timeMap.get(search).size();
                     mostOccurringSearch = search;
                 }
             }
