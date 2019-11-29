@@ -11,7 +11,6 @@ public class WikiMediatorServer {
      */
     public WikiMediatorServer(int port, int n) {
 
-        /* TODO: Implement this method */
 
     }
 

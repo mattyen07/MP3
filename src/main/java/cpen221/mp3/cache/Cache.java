@@ -13,7 +13,7 @@ public class Cache<T extends Cacheable> {
     public static final int DTIMEOUT = 3600;
 
     private final int capacity;
-    private Map<T, Pair> cacheMap;
+    private Map<T, TimePair> cacheMap;
     private final int timeout;
 
     /**
@@ -52,7 +52,7 @@ public class Cache<T extends Cacheable> {
      */
     public boolean put(T t) {
         if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
-            Pair add = new Pair(LocalDateTime.now(), LocalDateTime.now().plusSeconds(this.timeout));
+            TimePair add = new TimePair(LocalDateTime.now(), LocalDateTime.now().plusSeconds(this.timeout));
             this.cacheMap.put(t, add);
             return true;
         }
@@ -69,7 +69,7 @@ public class Cache<T extends Cacheable> {
             }
 
             this.cacheMap.remove(removeObject);
-            this.cacheMap.put(t, new Pair(time, LocalDateTime.now().plusSeconds(this.timeout)));
+            this.cacheMap.put(t, new TimePair(time, LocalDateTime.now().plusSeconds(this.timeout)));
             return true;
         }
 
@@ -86,12 +86,12 @@ public class Cache<T extends Cacheable> {
         for (T object : this.cacheMap.keySet()) {
             if (object.id().equals(id)) {
                 LocalDateTime expiry = this.cacheMap.get(object).getExpiryTime();
-                this.cacheMap.replace(object, new Pair(LocalDateTime.now(), expiry));
+                this.cacheMap.replace(object, new TimePair(LocalDateTime.now(), expiry));
                 return object;
             }
         }
 
-        throw new NotFoundException("ID not found");
+        throw new NotFoundException();
     }
 
     /**
@@ -106,7 +106,7 @@ public class Cache<T extends Cacheable> {
         for (T object : this.cacheMap.keySet()) {
             if (object.id().equals(id)) {
                 LocalDateTime update = this.cacheMap.get(object).getLastAccess();
-                Pair replacePair = new Pair(update, LocalDateTime.now().plusSeconds(this.timeout));
+                TimePair replacePair = new TimePair(update, LocalDateTime.now().plusSeconds(this.timeout));
                 this.cacheMap.replace(object, replacePair);
                 return true;
             }
@@ -126,7 +126,7 @@ public class Cache<T extends Cacheable> {
     public boolean update(T t) {
         if (this.cacheMap.containsKey(t)) {
             LocalDateTime update = this.cacheMap.get(t).getLastAccess();
-            Pair replacePair = new Pair(update, LocalDateTime.now().plusSeconds(this.timeout));
+            TimePair replacePair = new TimePair(update, LocalDateTime.now().plusSeconds(this.timeout));
             this.cacheMap.replace(t, replacePair);
             return true;
         }

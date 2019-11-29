@@ -24,7 +24,7 @@ public class WikiMediator {
     /* The Cache Instance of the WikiMediator */
     private Cache cache;
 
-    /* The popularity map of strings to # of requests */
+    /* The popularity map of strings to number of requests */
     private Map<String, Integer> popularityMap;
 
     /* The time map of strings to the time they were used */
@@ -101,7 +101,7 @@ public class WikiMediator {
     }
 
     /**
-     * Helper method to add request to the instance popularity map and time map.
+     * Helper method to add request to the instance popularity map and instance time map.
      * Method is synchronized so only one thread can access and add to map at the same time
      * @param request the query or pageTitle to be added to the map
      * @modifies popularityMap, adds a query or pageTitle if it is not in the map,

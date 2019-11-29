@@ -2,12 +2,12 @@ package cpen221.mp3.cache;
 
 import java.time.LocalDateTime;
 
-public class Pair {
+public class TimePair {
 
     private LocalDateTime lastAccess;
     private LocalDateTime expiryTime;
 
-    public Pair(LocalDateTime lastAccessed, LocalDateTime expiry) {
+    public TimePair(LocalDateTime lastAccessed, LocalDateTime expiry) {
         this.lastAccess = lastAccessed;
         this.expiryTime = expiry;
     }

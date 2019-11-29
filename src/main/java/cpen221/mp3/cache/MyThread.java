@@ -5,9 +5,9 @@ import java.util.Set;
 import java.time.LocalDateTime;
 
 public class MyThread<T extends Cacheable> implements Runnable {
-    private final Map<T, Pair> cacheMap;
+    private final Map<T, TimePair> cacheMap;
 
-    public MyThread(Map<T, Pair> map) {
+    public MyThread(Map<T, TimePair> map) {
         this.cacheMap = map;
 
     }
