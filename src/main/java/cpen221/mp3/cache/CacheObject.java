@@ -9,7 +9,7 @@ public class CacheObject implements Cacheable {
      */
 
     /*
-    AF(o) = a cacheable object such
+    AF(o) = a cacheable object such that
     o.id() = id of object
     o.text() = text of object
      */

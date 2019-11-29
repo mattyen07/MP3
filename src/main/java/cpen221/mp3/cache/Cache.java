@@ -6,6 +6,20 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Cache<T extends Cacheable> {
 
+    /*
+    RI: capacity is not null and is the largest size of the CacheMap
+        timeout is not null and is the largest time an item can exist in the cache.
+        cacheMap contains all objects in the cache as keys and the TimePair is the value.
+            for each TimePair value, .getExpiryTime() returns the time at which the cached item expires
+            and .getLastAccess() returns the most recent time the item was accessed.
+     */
+
+    /*
+    AF(cache) = items stored in cache such that
+        cacheMap contains all items of the cache.
+        expired items are removed from the cache.
+     */
+
     /* the default cache size is 32 objects */
     public static final int DSIZE = 32;
 
