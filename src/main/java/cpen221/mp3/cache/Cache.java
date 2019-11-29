@@ -15,7 +15,7 @@ public class Cache<T extends Cacheable> {
      */
 
     /*
-    AF(cache) = items stored in cache such that
+    AF(cache) = items that implement Cacheable stored in cache such that
         cacheMap contains all items of the cache.
         expired items are removed from the cache.
      */
@@ -66,7 +66,9 @@ public class Cache<T extends Cacheable> {
      * @param t object to be placed in cache
      * @return true if t is successfully placed in cache
      */
+    /* synchronize put */
     public boolean put(T t) {
+
         if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
             TimePair add = new TimePair(LocalDateTime.now(), LocalDateTime.now().plusSeconds(this.timeout));
             this.cacheMap.put(t, add);

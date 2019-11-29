@@ -9,6 +9,8 @@ public class WikiMediatorServer {
      * @param port the port number to bind the server to
      * @param n the number of concurrent requests the server can handle
      */
+
+    /* check if we need private method specs for server */
     public WikiMediatorServer(int port, int n) {
 
 

@@ -13,7 +13,7 @@ public class ExpiryThread<T extends Cacheable> implements Runnable {
      */
 
     /*
-    AF:
+    AF: N/A, nothing abstract is being represented, just a thread operating on a map
      */
 
     /**

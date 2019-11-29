@@ -19,13 +19,13 @@ public class WikiMediator {
      RI: methodNames is not null and contains all public methods within the WikiMediator Class
          wiki is not null and is the English domain of Wikipedia
          cache is not null
-         timeMap is not null
-         requestMap is not null
+         timeMap is not null. All times in the map must be after this.startTime
+         requestMap is not null. All times in the map must be after this.startTime
          startTime is not null
      */
 
     /*
-    AF(wm):
+    AF(wm): 
      */
 
     /* Default Cache Capacity */
