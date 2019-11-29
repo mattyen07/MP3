@@ -16,19 +16,24 @@ import fastily.jwiki.core.Wiki;
 
 public class WikiMediator {
     /*
-        You must implement the methods with the exact signatures
-        as provided in the statement for this mini-project.
-
-        You must add method signatures even for the methods that you
-        do not plan to implement. You should provide skeleton implementation
-        for those methods, and the skeleton implementation could return
-        values like null.
+     Representation Invariant:
      */
+    /* The Wikipedia Instance of the WikiMediator */
     private Wiki wiki;
+
+    /* The Cache Instance of the WikiMediator */
     private Cache cache;
+
+    /* The popularity map of strings to # of requests */
     private Map<String, Integer> popularityMap;
+
+    /* The time map of strings to the time they were used */
     private Map<String, List<LocalDateTime>> timeMap;
+
+    /* The request map of a method to the time the method was called */
     private Map<String, List<LocalDateTime>> requestMap;
+
+    /* The starting time of the WikiMediator */
     private LocalDateTime startTime;
 
     public WikiMediator() {
@@ -84,7 +89,6 @@ public class WikiMediator {
         try {
             CacheObject co = (CacheObject) this.cache.get(pageTitle);
             text = co.getText();
-            this.cache.update(co);
         } catch (NotFoundException e) {
             text = this.wiki.getPageText(pageTitle);
             this.cache.put(new CacheObject(pageTitle, text));
@@ -312,10 +316,24 @@ public class WikiMediator {
     }
 
     /* Task 3 */
+
+    /**
+     * Finds a path through links from the startPage to the stopPage
+     * @param startPage a page on Wikipedia
+     * @param stopPage a page on Wikipedia
+     * @return A list of strings on the path between the start Page and stop Page
+     * returns an empty list of strings if no such path exists
+     */
     public List<String> getPath(String startPage, String stopPage) {
         return null;
     }
 
+    /**
+     * Returns a list of pages that match a certain criteria
+     * @param query a string that defines the search
+     * @return a list of pages that match the criteria query
+     * returns an empty list if no such pages exist
+     */
     public List<String> executeQuery(String query) {
         return null;
     }

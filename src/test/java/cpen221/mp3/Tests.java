@@ -37,9 +37,9 @@ public class Tests {
         WikiMediator wm = new WikiMediator();
         List<String> answer;
         Wiki wiki = new Wiki("en.wikipedia.org");
-        answer = wiki.search("Barack Obama", 10);
+        answer = wiki.search("Barack Obama", 3);
         wm.simpleSearch("Barack Obama", 2);
-        assertEquals(answer, wm.simpleSearch("Barack Obama", 10));
+        assertEquals(answer, wm.simpleSearch("Barack Obama", 3));
     }
     @Test
     public void simpleSearchTest3() {
