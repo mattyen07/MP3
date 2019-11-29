@@ -22,7 +22,7 @@ public class WikiMediator {
     /* Default Cache Capacity */
     private static final int DEFAULTCAPACITY = 256;
 
-    /* Default Cache Expirty Time */
+    /* Default Cache Expirity Time */
     private static final int DEFAULTTIMEOUT = 43200;
 
     /* The Wikipedia Instance of the WikiMediator */
