@@ -16,8 +16,15 @@ import fastily.jwiki.core.Wiki;
 
 public class WikiMediator {
     /*
-     Representation Invariant:
+     RI:
      */
+
+    /* Default Cache Capacity */
+    private static final int DEFAULTCAPACITY = 256;
+
+    /* Default Cache Expirty Time */
+    private static final int DEFAULTTIMEOUT = 43200;
+
     /* The Wikipedia Instance of the WikiMediator */
     private Wiki wiki;
 
@@ -51,7 +58,7 @@ public class WikiMediator {
         this.popularityMap = new ConcurrentHashMap<>();
         this.timeMap = new ConcurrentHashMap<>();
         this.requestMap = new ConcurrentHashMap<>();
-        this.cache = new Cache<>(256, 43200);
+        this.cache = new Cache<>(WikiMediator.DEFAULTCAPACITY, WikiMediator.DEFAULTTIMEOUT);
         this.startTime = LocalDateTime.now();
 
         /* adds the method names into the requestMap */
@@ -63,7 +70,7 @@ public class WikiMediator {
 
     /**
      * Constructs an instance of the WikiMediator using an existing Cache object
-     * 
+     *
      * @param cache is not null
      */
     public WikiMediator(Cache cache) {
