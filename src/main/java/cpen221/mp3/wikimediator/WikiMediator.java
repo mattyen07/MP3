@@ -363,6 +363,21 @@ public class WikiMediator {
         return maxLoad;
     }
 
+    /* Task 2 */
+    /**
+     * Writes this.timeMap and this.requestMap to the local directory under the file ".keep"
+     */
+    private void writeStatsToFile() {
+
+    }
+
+    /**
+     * Writes this.cache to the local directory under the file ".Cache"
+     */
+    private void writeCacheToFile() {
+
+    }
+
     /* Task 3 */
 
     /**

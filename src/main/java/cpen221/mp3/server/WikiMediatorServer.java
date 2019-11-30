@@ -1,5 +1,9 @@
 package cpen221.mp3.server;
+
 import cpen221.mp3.wikimediator.WikiMediator;
+import java.net.Socket;
+import java.net.ServerSocket;
+import java.io.*;
 
 public class WikiMediatorServer {
     /*
@@ -10,7 +14,11 @@ public class WikiMediatorServer {
     AF:
      */
 
-    private WikiMediator instance;
+    public static final int WIKIMEDIATORSERVER_PORT = 42069;
+
+    private WikiMediator wmInstance;
+    private ServerSocket serverSocket;
+    private int maxRequests;
 
     /**
      * Start a server at a given port number, with the ability to process
@@ -21,11 +29,31 @@ public class WikiMediatorServer {
      */
 
     public WikiMediatorServer(int port, int n) {
-        this.instance = new WikiMediator();
+        this.wmInstance = new WikiMediator();
+        this.maxRequests = n;
+    }
 
+    /**
+     * Run the server, listening for connections and handling them.
+     *
+     * @throws IOException
+     *             if the main server socket is broken
+     */
+    public void serve() throws IOException {
 
     }
 
+    /**
+     * Handle one client connection. Returns when client disconnects.
+     *
+     * @param socket
+     *            socket where client is connected
+     * @throws IOException
+     *             if connection encounters an error
+     */
+    private void handle(Socket socket) throws IOException {
+
+    }
 
 
 }
