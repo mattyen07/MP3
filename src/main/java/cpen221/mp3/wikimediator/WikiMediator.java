@@ -31,8 +31,6 @@ public class WikiMediator {
             timeMap is a map of all searches/queries that are made to the times that they were made.
             requestMap is a map of all method calls to the times that said methods were called.
             methodNames is an array of all non-constructor public methods.
-
-
      */
 
     /* Default Cache Capacity */
