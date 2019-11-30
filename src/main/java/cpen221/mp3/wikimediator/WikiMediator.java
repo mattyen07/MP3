@@ -83,7 +83,7 @@ public class WikiMediator {
 
 
     /**
-     * Constructs an instance of the WikiMediator using an existing Cache object
+     * Constructs an instance of the WikiMediator that uses an existing Cache object
      * Creates a new English Wikipedia access point, and appropriate maps to store
      * statistics in the WikiMediator instance
      * @param cache is not null
@@ -107,8 +107,8 @@ public class WikiMediator {
      * A simple search function that returns a list of pages that match the query string
      * @param query is a String to use with Wikipedia's search function
      * @param limit is the maximum number of items that simpleSearch will return
-     * @modifies requestMap, adds a time the method was called into the request map
-     * @return  a list of strings with limit strings that appear from the query using
+     * @modifies requestMap, adds a time the method was called into the request map (under "simpleSearch" key)
+     * @return  a list of strings with  size <= limit that appear from the query using
      * wikipedia's search service.
      * If limit is equal to 0, returns an empty list of strings
      */
@@ -128,10 +128,10 @@ public class WikiMediator {
 
     /**
      * Returns the page text of a given page title. If the page title has been requested already
-     * the page text will be obtained from the cache instead of accessing wikipedia
-     * @param pageTitle is a page that we wish to find the wikipedia page
+     * the page text will be obtained from the cache instead of accessing wikipedia.
+     * @param pageTitle is a page that we wish to find the wikipedia page for.
      * @modifies requestMap, adds a time the method was called into the request map
-     * @return a string that contains the text of the given page title
+     * @return a string that contains the text of the given page title.
      */
     public String getPage(String pageTitle) {
         List<LocalDateTime> requestDates = this.requestMap.get("getPage");
@@ -153,7 +153,7 @@ public class WikiMediator {
     }
 
     /**
-     * Helper method to add request to the instance popularity map and instance time map.
+     * Helper method to add request to the instance time map.
      * Method is synchronized so only one thread can access and add to map at the same time
      * @param request the query or pageTitle to be added to the map
      * @modifies timeMap, adds a query or pageTitle if it is not in the map,
