@@ -63,7 +63,7 @@ public class WikiMediator {
 
     /**
      * Constructs an instance of the WikiMediator.
-     * This instance creates a new English Wikipedia access, a new default cache object
+     * This constructor creates a new English Wikipedia access, a new default cache object
      * and creates appropriate maps to store statistics in the WikiMediator
      *
      */
@@ -84,7 +84,7 @@ public class WikiMediator {
 
     /**
      * Constructs an instance of the WikiMediator that uses an existing Cache object
-     * Creates a new English Wikipedia access point, and appropriate maps to store
+     * Creates a new English Wikipedia access point, and initializes appropriate maps to store
      * statistics in the WikiMediator instance
      * @param cache is not null
      *
@@ -105,8 +105,8 @@ public class WikiMediator {
 
     /**
      * A simple search function that returns a list of pages that match the query string
-     * @param query is a String to use with Wikipedia's search function
-     * @param limit is the maximum number of items that simpleSearch will return
+     * @param query is not null and is a String to use with Wikipedia's search function
+     * @param limit >= 0 is the maximum number of items that simpleSearch will return
      * @modifies requestMap, adds a time the method was called into the request map (under "simpleSearch" key)
      * @return  a list of strings with  size <= limit that appear from the query using
      * wikipedia's search service.
@@ -129,9 +129,10 @@ public class WikiMediator {
     /**
      * Returns the page text of a given page title. If the page title has been requested already
      * the page text will be obtained from the cache instead of accessing wikipedia.
-     * @param pageTitle is a page that we wish to find the wikipedia page for.
-     * @modifies requestMap, adds a time the method was called into the request map
+     * @param pageTitle is not null and is a page that we wish to find the wikipedia page for.
+     * @modifies requestMap, adds a time the method was called into the request map (under "getPage" key)
      * @return a string that contains the text of the given page title.
+     * If page title is invalid, getPage follows the behaviour of the jWiki API
      */
     public String getPage(String pageTitle) {
         List<LocalDateTime> requestDates = this.requestMap.get("getPage");
@@ -153,12 +154,12 @@ public class WikiMediator {
     }
 
     /**
-     * Helper method to add request to the instance time map.
+     * Helper method to add a string request to the instance time map.
      * Method is synchronized so only one thread can access and add to map at the same time
      * @param request the query or pageTitle to be added to the map
      * @modifies timeMap, adds a query or pageTitle if it is not in the map,
      *                    otherwise, adds the current time to the list of times the
-     *                    request has been accessed
+     *                    string has been used
      */
     private synchronized void addToMap(String request) {
 
@@ -175,11 +176,11 @@ public class WikiMediator {
 
     /**
      * Find a list of pages that are connected to the given page in a certain number of hops
-     * @param pageTitle The starting page
-     * @param hops The number of links we jump through
-     * @modifies requestMap, adds a time the method was called into the request map
-     * @return A list of pages that reachable within a certain number of hops.
-     * Removes all duplicate pages and thus, only returns a list of unique pages that can
+     * @param pageTitle is not null and is the starting page
+     * @param hops >= 0 and is the number of links that we jump through
+     * @modifies requestMap, adds a time the method was called into the request map (under "getConnectedPages" key)
+     * @return A list of pages that are reachable within a certain number of hops from pageTitle.
+     * This list contains no duplicate pages and thus, only returns a list of unique pages that can
      * be found through links from the initial pageTitle
      */
     public List<String> getConnectedPages(String pageTitle, int hops) {
@@ -206,9 +207,8 @@ public class WikiMediator {
      * Recursive Helper method for getConnectedPages
      * Base Case is if hops <=0, returns a list of just the current page title
      * otherwise subtracts 1 from hops and calls helper again for each link in the list
-     * @param pageTitle initial page we are starting from
-     * @param hops The number of links to jump through
-     * @modifies requestMap, adds a time the method was called into the request map
+     * @param pageTitle is not null and is the initial page we are starting from
+     * @param hops >= 0 and is the number of links to jump through
      * @return a list of pages that can be found within a certain number of hops
      * starting from pageTitle
      */
@@ -231,12 +231,13 @@ public class WikiMediator {
     }
 
     /**
-     * Returns a list of the most common strings used in the simple search and getPage methods
-     * @param limit the maximum number of items to return from the method call
-     * @modifies requestMap, adds a time the method was called into the request map
+     * Returns a list of the most common strings used in the simpleSearch and getPage methods
+     * @param limit >= 0 and is the maximum number of items to return from the method call
+     * @modifies requestMap, adds a time the method was called into the request map (under "zeitgeist" key)
      * @return a list of strings where strings are sorted by the amount of times they have been
      * called by the getPage or simple search method. These strings are sorted into non-increasing
      * order of appearance.
+     * If limit = 0, returns an empty list of strings
      */
     public List<String> zeitgeist(int limit) {
         List<LocalDateTime> requestDates = this.requestMap.get("zeitgeist");
@@ -267,11 +268,12 @@ public class WikiMediator {
     /**
      * Returns a list of the most common Strings used in the getPage and simpleSearch method
      * from the past 30 seconds
-     * @param limit the maximum number of items to return from method call
-     * @modifies requestMap, adds a time the method was called into the request map
+     * @param limit >= 0 and is the maximum number of items to return from method call
+     * @modifies requestMap, adds a time the method was called into the request map (under "trending" key)
      * @return a list of strings where strings are sorted by the amount of times they have been
      * called by the getPage or simple search method. These strings are sorted into non-increasing
      * order of appearance.
+     * If limit = 0, returns an empty list of strings
      */
     public List<String> trending(int limit) {
         List<LocalDateTime> requestDates = this.requestMap.get("trending");
@@ -317,7 +319,7 @@ public class WikiMediator {
     /**
      * Returns the maximum number of requests in any 30 second interval during the duration of
      * an instance of WikiMediator
-     * @modifies requestMap, adds a time the method was called into the request map
+     * @modifies requestMap, adds a time the method was called into the request map (under "peakLoad30s" key)
      * @return the maximum number of request in any 30 second interval.
      * The return value will always be >= 1 since we consider the method call of peakLoad30s
      * to be within the last 30 seconds
@@ -382,10 +384,10 @@ public class WikiMediator {
 
     /**
      * Finds a path through links from the startPage to the stopPage
-     * @param startPage a page on Wikipedia
-     * @param stopPage a page on Wikipedia
+     * @param startPage a page on en.wikipedia.org
+     * @param stopPage a page on en.wikipedia.org
      * @return A list of strings on the path between the start Page and stop Page
-     * returns an empty list of strings if no such path exists
+     * Returns an empty list of strings if no such path exists
      */
     public List<String> getPath(String startPage, String stopPage) {
         return null;
@@ -395,7 +397,7 @@ public class WikiMediator {
      * Returns a list of pages that match a certain criteria
      * @param query a string that defines the search
      * @return a list of pages that match the criteria query
-     * returns an empty list if no such pages exist
+     * Returns an empty list if no such pages exist
      */
     public List<String> executeQuery(String query) {
         return null;
