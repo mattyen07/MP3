@@ -44,7 +44,8 @@ public class WikiMediatorServer {
 
     /**
      * Handle one client connection. Returns when client disconnects.
-     * Parses the JSON request of client within the
+     * Parses the JSON request of client such that we can request the appropriate
+     * method from the WikiMediator instance
      * @param socket  socket where client is connected
      * @throws IOException if connection encounters an error
      */
