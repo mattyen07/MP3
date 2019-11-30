@@ -7,11 +7,16 @@ import java.io.*;
 
 public class WikiMediatorServer {
     /*
-    RI:
+    RI: wmInstance is not null.
+        serverSocket is not null.
+        maxRequests is not null  and is >= 0
      */
 
     /*
-    AF:
+    AF: WikiMediatorServer is a server that can run the WikiMediator concurrently with multiple clients.
+        wmInstance is the instance of the WikiMediator used by the server.
+        serverSocket is the main server socket.
+        maxRequest is the number of clients the server can handle.
      */
 
     public static final int WIKIMEDIATORSERVER_PORT = 42069;
