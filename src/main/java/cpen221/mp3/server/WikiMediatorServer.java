@@ -35,9 +35,7 @@ public class WikiMediatorServer {
 
     /**
      * Run the server, listening for connections and handling them.
-     *
-     * @throws IOException
-     *             if the main server socket is broken
+     * @throws IOException if the main server socket is broken
      */
     public void serve() throws IOException {
 
@@ -45,11 +43,9 @@ public class WikiMediatorServer {
 
     /**
      * Handle one client connection. Returns when client disconnects.
-     *
-     * @param socket
-     *            socket where client is connected
-     * @throws IOException
-     *             if connection encounters an error
+     * Parses the JSON request of client within the
+     * @param socket  socket where client is connected
+     * @throws IOException if connection encounters an error
      */
     private void handle(Socket socket) throws IOException {
 
