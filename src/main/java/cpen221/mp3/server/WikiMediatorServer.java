@@ -34,8 +34,9 @@ public class WikiMediatorServer {
      * @param n > 0 the number of concurrent requests the server can handle
      */
 
-    public WikiMediatorServer(int port, int n) {
+    public WikiMediatorServer(int port, int n) throws IOException {
         this.wmInstance = new WikiMediator();
+        this.serverSocket = new ServerSocket(port);
         this.maxRequests = n;
     }
 
@@ -44,6 +45,30 @@ public class WikiMediatorServer {
      * @throws IOException if the main server socket is broken
      */
     public void serve() throws IOException {
+
+        while (true) {
+            // block until a client connects
+            final Socket socket = serverSocket.accept();
+            // create a new thread to handle that client
+            Thread handler = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        try {
+                            handle(socket);
+                        } finally {
+                            socket.close();
+                        }
+                    } catch (IOException ioe) {
+                        // this exception wouldn't terminate serve(),
+                        // since we're now on a different thread, but
+                        // we still need to handle it
+                        ioe.printStackTrace();
+                    }
+                }
+            });
+            // start the thread
+            handler.start();
+        }
 
     }
 
