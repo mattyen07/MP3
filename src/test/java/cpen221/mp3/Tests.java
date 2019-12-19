@@ -561,4 +561,49 @@ public class Tests {
         }
         assertFalse(cache.update(co));
     }
+
+    @Test
+    public void getPathTest1() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        answer.add("Hockey");
+        answer.add("Ice hockey");
+        answer.add("Sidney Crosby");
+
+        assertEquals(answer, wm.getPath("Hockey", "Sidney Crosby"));
+    }
+
+    @Test
+    public void getPathTest2() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        answer.add("Galojan");
+        answer.add("Given name");
+        answer.add("Unisex name");
+        answer.add("Sidney Crosby");
+
+        assertEquals(answer, wm.getPath("Galojan", "Sidney Crosby"));
+    }
+
+    @Test
+    public void getPathTest3() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        answer.add("Assassination of Abraham Lincoln");
+        answer.add("West Virginia");
+        answer.add("Potassium Nitrate");
+        answer.add("Korean brining salt");
+
+        assertEquals(answer, wm.getPath("Assassination of Abraham Lincoln", "Korean brining salt"));
+    }
+
+    @Test
+    public void getPathTest4() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        answer.add("Galojan");
+        answer.add("Anna-Maria Galojan");
+
+        assertEquals(answer, wm.getPath("Galojan", "Anna-Maria Galojan"));
+    }
 }
