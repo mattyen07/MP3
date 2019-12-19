@@ -4,6 +4,7 @@ import cpen221.mp3.wikimediator.WikiMediator;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.*;
+import com.google.gson.*;
 
 public class WikiMediatorServer {
     /*
@@ -79,9 +80,27 @@ public class WikiMediatorServer {
      * @param socket  socket where client is connected
      * @throws IOException if connection encounters an error
      */
+    //https://stackoverflow.com/questions/26284419/java-read-json-input-stream
     private void handle(Socket socket) throws IOException {
+        InputStreamReader inputStream = new InputStreamReader(socket.getInputStream());
+        BufferedReader br = new BufferedReader(inputStream);
+        JsonParser parser = new JsonParser();
+        Gson gson = new Gson();
 
+        JsonElement json = parser.parse(br);
+
+        if (json.isJsonArray()) {
+            JsonArray requestArray = json.getAsJsonArray();
+            for (int i = 0; i < requestArray.size(); i++) {
+                JsonObject request = requestArray.get(i).getAsJsonObject();
+                String id = request.get("id").getAsString();
+                String type = request.get("type").getAsString();
+
+            }
+
+        }
     }
-
-
+    //private final String[] methodNames =
+    //            new String[]{"simpleSearch", "getPage", "getConnectedPages",
+    //                    "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
 }
