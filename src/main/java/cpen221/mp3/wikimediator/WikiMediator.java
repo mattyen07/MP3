@@ -7,7 +7,9 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Collections;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import cpen221.mp3.cache.Cache;
 import cpen221.mp3.cache.CacheObject;
@@ -388,7 +390,62 @@ public class WikiMediator {
      * Returns an empty list of strings if no such path exists
      */
     public List<String> getPath(String startPage, String stopPage) {
-        return null;
+        Queue<String> queue = new LinkedBlockingQueue<>();
+        Map<String, String> parentMap = new ConcurrentHashMap<>();
+        parentMap.put(startPage, startPage);
+        queue.add(startPage);
+        boolean pageFound = false;
+
+        // if we reach end of queue without finding the page, no possible path
+        while (!queue.isEmpty()) {
+            String checkPage = queue.remove();
+            List<String> linksOnPage = this.wiki.getLinksOnPage(checkPage);
+            for (String page : linksOnPage) {
+                // if parentMap doesn't contain page, we haven't visited it yet,
+                // so we add it to the queue
+                if (!parentMap.containsKey(page)) {
+                    parentMap.put(page, checkPage);
+                    queue.add(page);
+                }
+
+                // if page is the destination, break out of loop and set break flag in while loop
+                // to true so we break out of queue loop
+                if (page.equals(stopPage)) {
+                    pageFound = true;
+                    break;
+                }
+
+            }
+
+            //want to break out of loop if we have found destination
+            if (pageFound) {
+                break;
+            }
+
+        }
+
+        // if we completely exhaust the queue, then stop Page is either invalid or an orphan page
+        if (!pageFound) {
+            return new ArrayList<>();
+        } else {
+            // we have a path from startPage to stopPage
+            List<String> pathList = new ArrayList<>();
+            pathList.add(stopPage);
+            String parentPage = stopPage;
+
+            while (!pathList.contains(startPage)) {
+                pathList.add(parentMap.get(parentPage));
+                parentPage = parentMap.get(parentPage);
+            }
+
+            List<String> pagePath = new ArrayList<>();
+            for (int i = pathList.size() - 1; i >= 0; i++) {
+                pagePath.add(pathList.get(i));
+
+            }
+
+            return pagePath;
+        }
     }
 
     /**
