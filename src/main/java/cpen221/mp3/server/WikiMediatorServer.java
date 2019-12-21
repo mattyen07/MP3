@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
 import com.google.gson.*;
 
@@ -24,6 +25,8 @@ public class WikiMediatorServer {
      */
 
     public static final int WIKIMEDIATORSERVER_PORT = 42069;
+    private static final String FAILLURE_STATUS = "failed";
+    private static final String SUCCESS_STATUS = "success";
 
     private WikiMediator wmInstance;
     private ServerSocket serverSocket;
@@ -98,6 +101,12 @@ public class WikiMediatorServer {
     private void handle(Socket socket) throws IOException {
         System.err.println("client connected");
 
+
+        //load previous stats from file:
+        wmInstance.loadRequestsFromFile();
+        wmInstance.loadTrendingFromFile();
+
+
         // get the socket's input stream, and wrap converters around it
         // that convert it from a byte stream to a character stream,
         // and that buffer it so that we can read a line at a time
@@ -118,94 +127,143 @@ public class WikiMediatorServer {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
                 JsonObject request = parser.parse(line).getAsJsonObject();
 
-                String id = request.get("id").getAsString();
-                String type = request.get("type").getAsString();
-                String status = "success";
+                if(request.has("timeout")) {
+                    int timeout = Integer.parseInt(request.get("timeout").getAsString().replaceAll(",", ""));
+                    ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-                if (request.has("timeout")) {
-                    String timeout = request.get("timeout").getAsString();
-                }
+                    Future<JsonObject> result = executorService.submit(new Callable<JsonObject>() {
+                        @Override
+                        public JsonObject call() throws Exception {
+                            return getWikiReply(request);
+                        }
+                    });
 
-                if (type.equals("simpleSearch")) {
-                    String query = request.get("query").getAsString();
-                    int limit = request.get("limit").getAsInt();
-                    List<String> result = this.wmInstance.simpleSearch(query, limit);
+                    try {
+                        returningObject = result.get(timeout, TimeUnit.SECONDS);
+                    } catch (InterruptedException | ExecutionException e) {
 
+                        returningObject.addProperty("id", request.get("id").getAsString());
+                        returningObject.addProperty("status", this.FAILLURE_STATUS);
+                        returningObject.addProperty("response", "Operation timed out");
 
-                    returningObject.addProperty("id", id);
-                    returningObject.addProperty("status", status);
-                    returningObject.addProperty("response", gson.toJson(result));
+                    } catch (TimeoutException e) {
 
-                } else if (type.equals("getPage")) {
-                    String pageTitle = request.get("pageTitle").getAsString();
-                    System.out.println(pageTitle);
-                    String result = this.wmInstance.getPage(pageTitle);
+                        returningObject.addProperty("id", request.get("id").getAsString());
+                        returningObject.addProperty("status", this.FAILLURE_STATUS);
+                        returningObject.addProperty("response", "Operation timed out");
 
-                    returningObject.addProperty("id", id);
-                    returningObject.addProperty("status", status);
-                    returningObject.addProperty("response", gson.toJson(result));
+                    }
 
-                } else if (type.equals("getConnectedPages")) {
-                    String pageTitle = request.get("pageTitle").getAsString();
-                    int hops = request.get("hops").getAsInt();
-                    List<String> result = this.wmInstance.getConnectedPages(pageTitle, hops);
+                    executorService.shutdownNow();
 
-                    returningObject.addProperty("id", id);
-                    returningObject.addProperty("status", status);
-                    returningObject.addProperty("response", gson.toJson(result));
-
-                } else if (type.equals("zeitgeist")) {
-                    int limit = request.get("limit").getAsInt();
-                    List<String> result = this.wmInstance.zeitgeist(limit);
-
-                    returningObject.addProperty("id", id);
-                    returningObject.addProperty("status", status);
-                    returningObject.addProperty("response", gson.toJson(result));
-
-                } else if (type.equals("trending")) {
-                    int limit = request.get("limit").getAsInt();
-                    List<String> result = this.wmInstance.trending(limit);
-
-                    returningObject.addProperty("id", id);
-                    returningObject.addProperty("status", status);
-                    returningObject.addProperty("response", gson.toJson(result));
-
-                } else if (type.equals("peakLoad30s")) {
-                    int result = this.wmInstance.peakLoad30s();
-
-                    returningObject.addProperty("id", id);
-                    returningObject.addProperty("status", status);
-                    returningObject.addProperty("response", gson.toJson(result));
-
-                } else if (type.equals("getPath")) {
-                    String startPage = request.get("startPage").getAsString();
-                    String stopPage = request.get("stopPage").getAsString();
-                    List<String> result = this.wmInstance.getPath(startPage, stopPage);
-
-                    returningObject.addProperty("id", id);
-                    returningObject.addProperty("status", status);
-                    returningObject.addProperty("response", gson.toJson(result));
-
-                } else if (type.equals("executeQuery")) {
-                    String query = request.get("query").getAsString();
-                    List<String> result = this.wmInstance.executeQuery(query);
-
-                    returningObject.addProperty("id", id);
-                    returningObject.addProperty("status", status);
-                    returningObject.addProperty("response", gson.toJson(result));
 
                 } else {
-                    out.println("Error: Not a valid type! :(");
+                    returningObject = getWikiReply(request);
                 }
+
+
+
+                    //write stats to file!
+                wmInstance.writeRequestsToFile();
+                wmInstance.writeTrendingToFile();
 
                 out.println(returningObject.toString() + "\r\n");
             }
-
         } finally {
             out.close();
             in.close();
         }
     }
+
+
+    /**
+     * Helper method to get the correct JSON formatted reply from WikiMediator based on the request.
+     * @param request is a correctly formatted JsonObject for the server.
+     * @return correctly formatted reply containing the results of the wikimediator.
+     */
+    private JsonObject getWikiReply(JsonObject request) {
+
+        JsonParser parser = new JsonParser();
+        Gson gson = new Gson();
+        JsonObject returningObject = new JsonObject();
+
+        String id = request.get("id").getAsString();
+        String type = request.get("type").getAsString();
+
+        if (type.equals("simpleSearch")) {
+            String query = request.get("query").getAsString();
+            int limit = request.get("limit").getAsInt();
+            List<String> result = this.wmInstance.simpleSearch(query, limit);
+
+
+            returningObject.addProperty("id", id);
+            returningObject.addProperty("status", this.SUCCESS_STATUS);
+            returningObject.addProperty("response", gson.toJson(result));
+
+        } else if (type.equals("getPage")) {
+            String pageTitle = request.get("pageTitle").getAsString();
+            System.out.println(pageTitle);
+            String result = this.wmInstance.getPage(pageTitle);
+
+            returningObject.addProperty("id", id);
+            returningObject.addProperty("status", this.SUCCESS_STATUS);
+            returningObject.addProperty("response", gson.toJson(result));
+
+        } else if (type.equals("getConnectedPages")) {
+            String pageTitle = request.get("pageTitle").getAsString();
+            int hops = request.get("hops").getAsInt();
+            List<String> result = this.wmInstance.getConnectedPages(pageTitle, hops);
+
+            returningObject.addProperty("id", id);
+            returningObject.addProperty("status", this.SUCCESS_STATUS);
+            returningObject.addProperty("response", gson.toJson(result));
+
+        } else if (type.equals("zeitgeist")) {
+            int limit = request.get("limit").getAsInt();
+            List<String> result = this.wmInstance.zeitgeist(limit);
+
+            returningObject.addProperty("id", id);
+            returningObject.addProperty("status", this.SUCCESS_STATUS);
+            returningObject.addProperty("response", gson.toJson(result));
+
+        } else if (type.equals("trending")) {
+            int limit = request.get("limit").getAsInt();
+            List<String> result = this.wmInstance.trending(limit);
+
+            returningObject.addProperty("id", id);
+            returningObject.addProperty("status", this.SUCCESS_STATUS);
+            returningObject.addProperty("response", gson.toJson(result));
+
+        } else if (type.equals("peakLoad30s")) {
+            int result = this.wmInstance.peakLoad30s();
+
+            returningObject.addProperty("id", id);
+            returningObject.addProperty("status", this.SUCCESS_STATUS);
+            returningObject.addProperty("response", gson.toJson(result));
+
+        } else if (type.equals("getPath")) {
+            String startPage = request.get("startPage").getAsString();
+            String stopPage = request.get("stopPage").getAsString();
+            List<String> result = this.wmInstance.getPath(startPage, stopPage);
+
+            returningObject.addProperty("id", id);
+            returningObject.addProperty("status", this.SUCCESS_STATUS);
+            returningObject.addProperty("response", gson.toJson(result));
+
+        } else if (type.equals("executeQuery")) {
+            String query = request.get("query").getAsString();
+            List<String> result = this.wmInstance.executeQuery(query);
+
+            returningObject.addProperty("id", id);
+            returningObject.addProperty("status", this.SUCCESS_STATUS);
+            returningObject.addProperty("response", gson.toJson(result));
+
+        }
+
+        return returningObject;
+    }
+
+
 
     /**
      * Start a FibonacciServer running on the default port.

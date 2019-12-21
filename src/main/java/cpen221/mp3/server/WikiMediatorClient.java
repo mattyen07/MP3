@@ -47,11 +47,11 @@ public class WikiMediatorClient {
      * @return the requested Fibonacci number
      * @throws IOException if network or server failure
      */
-    public JsonObject getReply() throws IOException {
+    public String getReply() throws IOException {
         JsonParser parser = new JsonParser();
+        String reply = "error";
         Gson gson = new Gson();
-        JsonObject reply = parser.parse(in.readLine()).getAsJsonObject();
-
+        reply = in.readLine();
         return reply;
     }
 
@@ -90,11 +90,11 @@ public class WikiMediatorClient {
 
 
             client.sendRequest(request.toString());
-            System.out.println(request.toString());
+            System.err.println(request.toString());
 
-            //JsonObject reply = client.getReply();
+            String reply = client.getReply();
 
-            System.out.println("Reply!:" + client.in.readLine());
+            System.err.println("Reply!:" + reply);
 
             client.close();
         } catch (IOException ioe) {
