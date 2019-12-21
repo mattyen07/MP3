@@ -80,13 +80,16 @@ public class WikiMediatorClient {
             //put junk in here!
 
             String id = "yeet";
-            String type = "getPage";
+            String type = "getConnectedPages";
             String pageTitle = "Barack Obama";
+            String hops = "10";
 
             JsonObject request = new JsonObject();
             request.addProperty("id", id);
             request.addProperty("type", type);
             request.addProperty("pageTitle", pageTitle);
+            request.addProperty("hops", hops);
+            request.addProperty("timeout", "1");
 
 
             client.sendRequest(request.toString());

@@ -1,6 +1,9 @@
 package cpen221.mp3;
 
+import com.google.gson.JsonObject;
 import cpen221.mp3.cache.NotFoundException;
+import cpen221.mp3.server.WikiMediatorClient;
+import cpen221.mp3.server.WikiMediatorServer;
 import cpen221.mp3.wikimediator.InvalidQueryException;
 import cpen221.mp3.wikimediator.WikiMediator;
 import cpen221.mp3.cache.Cache;
@@ -8,6 +11,7 @@ import cpen221.mp3.cache.CacheObject;
 import fastily.jwiki.core.Wiki;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Collections;
@@ -958,5 +962,174 @@ public class Tests {
 
         assertEquals(answer, wm.parse(query));
     }
+
+    //test simple search request
+    @Test
+    public void serverTest1() {
+        try {
+            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+            String id = "test1";
+            String type = "simpleSearch";
+            String query = "Barack Obama";
+            String limit = "4";
+
+            JsonObject request = new JsonObject();
+            request.addProperty("id", id);
+            request.addProperty("type", type);
+            request.addProperty("query", query);
+            request.addProperty("limit", limit);
+
+            client.sendRequest(request.toString());
+            System.err.println(request.toString());
+
+            String reply = client.getReply();
+
+            System.err.println("Reply!:" + reply);
+
+            client.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    //tests getPage
+    @Test
+    public void serverTest2() {
+        try {
+            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+            String id = "test2";
+            String type = "getPage";
+
+            JsonObject request = new JsonObject();
+            request.addProperty("id", id);
+            request.addProperty("type", type);
+            request.addProperty("pageTitle", "Star Wars");
+
+            client.sendRequest(request.toString());
+            System.err.println(request.toString());
+
+            String reply = client.getReply();
+
+            System.err.println("Reply!:" + reply);
+
+            client.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    //tests getConnectedPages
+    @Test
+    public void serverTest3() {
+        try {
+            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+            String id = "test2";
+            String type = "getConnectedPages";
+
+            JsonObject request = new JsonObject();
+            request.addProperty("id", id);
+            request.addProperty("type", type);
+            request.addProperty("pageTitle", "Galojan");
+            request.addProperty("hops", 1);
+
+            client.sendRequest(request.toString());
+            System.err.println(request.toString());
+
+            String reply = client.getReply();
+
+            System.err.println("Reply!:" + reply);
+
+            client.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    //tests zeitgeist
+    @Test
+    public void serverTest4() {
+        try {
+            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+            String id = "test2";
+            String type = "zeitgeist";
+
+            JsonObject request = new JsonObject();
+            request.addProperty("id", id);
+            request.addProperty("type", type);
+            request.addProperty("limit",5);
+
+            client.sendRequest(request.toString());
+            System.err.println(request.toString());
+
+            String reply = client.getReply();
+
+            System.err.println("Reply!:" + reply);
+
+            client.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+
+    //tests trending
+    @Test
+    public void serverTest5() {
+        try {
+            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+            String id = "test2";
+            String type = "trending";
+
+            JsonObject request = new JsonObject();
+            request.addProperty("id", id);
+            request.addProperty("type", type);
+            request.addProperty("limit",1);
+
+            client.sendRequest(request.toString());
+            System.err.println(request.toString());
+
+            String reply = client.getReply();
+
+            System.err.println("Reply!:" + reply);
+
+            client.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    //tests peakLoad30s
+    @Test
+    public void serverTest6() {
+        try {
+            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+            String id = "test2";
+            String type = "peakLoad30s";
+
+            JsonObject request = new JsonObject();
+            request.addProperty("id", id);
+            request.addProperty("type", type);
+
+
+            client.sendRequest(request.toString());
+            System.err.println(request.toString());
+
+            String reply = client.getReply();
+
+            System.err.println("Reply!:" + reply);
+
+            client.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+
 
 }

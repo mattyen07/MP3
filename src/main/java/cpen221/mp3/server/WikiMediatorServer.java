@@ -97,14 +97,21 @@ public class WikiMediatorServer {
 
     }
 
-
+    /**
+     * Handle one client connection. Returns when client disconnects.
+     * Parses the JSON request of client such that we can request the appropriate
+     * method from the WikiMediator instance
+     * @param socket  socket where client is connected
+     * @throws IOException if connection encounters an error
+     */
     private void handle(Socket socket) throws IOException {
         System.err.println("client connected");
 
 
         //load previous stats from file:
         wmInstance.loadRequestsFromFile();
-        wmInstance.loadTrendingFromFile();
+        wmInstance.loadStatsFromFile();
+        wmInstance.loadStartTimeFromFile();
 
 
         // get the socket's input stream, and wrap converters around it
@@ -144,7 +151,7 @@ public class WikiMediatorServer {
 
                         returningObject.addProperty("id", request.get("id").getAsString());
                         returningObject.addProperty("status", this.FAILLURE_STATUS);
-                        returningObject.addProperty("response", "Operation timed out");
+                        returningObject.addProperty("response", "Execution Failed");
 
                     } catch (TimeoutException e) {
 
@@ -165,13 +172,17 @@ public class WikiMediatorServer {
 
                     //write stats to file!
                 wmInstance.writeRequestsToFile();
-                wmInstance.writeTrendingToFile();
+                wmInstance.writeStatsToFile();
+                wmInstance.writeStartTimeToFile();
 
                 out.println(returningObject.toString() + "\r\n");
             }
         } finally {
             out.close();
             in.close();
+            synchronized (this) {
+                this.numCurrentRequests--;
+            }
         }
     }
 
@@ -183,7 +194,6 @@ public class WikiMediatorServer {
      */
     private JsonObject getWikiReply(JsonObject request) {
 
-        JsonParser parser = new JsonParser();
         Gson gson = new Gson();
         JsonObject returningObject = new JsonObject();
 
@@ -202,7 +212,6 @@ public class WikiMediatorServer {
 
         } else if (type.equals("getPage")) {
             String pageTitle = request.get("pageTitle").getAsString();
-            System.out.println(pageTitle);
             String result = this.wmInstance.getPage(pageTitle);
 
             returningObject.addProperty("id", id);
@@ -270,7 +279,7 @@ public class WikiMediatorServer {
      */
     public static void main(String[] args) {
         try {
-            WikiMediatorServer server = new WikiMediatorServer(WIKIMEDIATORSERVER_PORT, 10);
+            WikiMediatorServer server = new WikiMediatorServer(WIKIMEDIATORSERVER_PORT, 1);
             server.serve();
         } catch (IOException e) {
             e.printStackTrace();
