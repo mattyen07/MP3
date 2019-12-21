@@ -129,7 +129,6 @@ public class WikiMediatorServer {
 
         try {
             JsonParser parser = new JsonParser();
-            Gson gson = new Gson();
             JsonObject returningObject = new JsonObject();
             for (String line = in.readLine(); line != null; line = in.readLine()) {
                 JsonObject request = parser.parse(line).getAsJsonObject();
