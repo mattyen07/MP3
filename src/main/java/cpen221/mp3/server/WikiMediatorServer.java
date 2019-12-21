@@ -4,6 +4,8 @@ import cpen221.mp3.wikimediator.WikiMediator;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.*;
+import java.util.ArrayList;
+
 import com.google.gson.*;
 
 public class WikiMediatorServer {
@@ -73,6 +75,133 @@ public class WikiMediatorServer {
 
     }
 
+
+    private void handle(Socket socket) throws IOException {
+        System.err.println("client connected");
+
+        // get the socket's input stream, and wrap converters around it
+        // that convert it from a byte stream to a character stream,
+        // and that buffer it so that we can read a line at a time
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                socket.getInputStream()));
+
+        // similarly, wrap character=>bytestream converter around the
+        // socket output stream, and wrap a PrintWriter around that so
+        // that we have more convenient ways to write Java primitive
+        // types to it.
+        PrintWriter out = new PrintWriter(new OutputStreamWriter(
+                socket.getOutputStream()), true);
+
+        try {
+            JsonParser parser = new JsonParser();
+            Gson gson = new Gson();
+            JsonObject returningObject = new JsonObject();
+            JsonElement json = parser.parse(in);
+
+            if (json.isJsonArray()) {
+                JsonArray requestArray = json.getAsJsonArray();
+                for (int i = 0; i < requestArray.size(); i++) {
+                    JsonObject request = requestArray.get(i).getAsJsonObject();
+                    String id = request.get("id").getAsString();
+                    String type = request.get("type").getAsString();
+                    String status = "success";
+
+                    if(type.equals("simpleSearch")) {
+                        String query = request.get("query").getAsString();
+                        int limit = request.get("limit").getAsInt();
+
+
+                        //*****not to sure about this casting...
+                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.simpleSearch(query, limit);
+
+
+                        returningObject.addProperty("id", id);
+                        returningObject.addProperty("status", status);
+                        returningObject.addProperty("response", gson.toJson(result));
+
+                    } else if(type.equals("getPage")) {
+                        String pageTitle = request.get("pageTitle").getAsString();
+                        String result = this.wmInstance.getPage(pageTitle);
+
+                        returningObject.addProperty("id", id);
+                        returningObject.addProperty("status", status);
+                        returningObject.addProperty("response", gson.toJson(result));
+
+                    } else if(type.equals("getConnectedPages")) {
+                        String pageTitle = request.get("pageTitle").getAsString();
+                        int hops = request.get("hops").getAsInt();
+
+                        //*****not to sure about this casting...
+                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.getConnectedPages(pageTitle, hops);
+
+                        returningObject.addProperty("id", id);
+                        returningObject.addProperty("status", status);
+                        returningObject.addProperty("response", gson.toJson(result));
+
+                    } else if(type.equals("zeitgeist")) {
+                        int limit = request.get("limit").getAsInt();
+                        //*****not to sure about this casting...
+                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.zeitgeist(limit);
+
+                        returningObject.addProperty("id", id);
+                        returningObject.addProperty("status", status);
+                        returningObject.addProperty("response", gson.toJson(result));
+
+                    } else if(type.equals("trending")) {
+                        int limit = request.get("limit").getAsInt();
+                        //*****not to sure about this casting...
+                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.trending(limit);
+
+                        returningObject.addProperty("id", id);
+                        returningObject.addProperty("status", status);
+                        returningObject.addProperty("response", gson.toJson(result));
+
+                    } else if(type.equals("peakLoad30s")) {
+                        int result = this.wmInstance.peakLoad30s();
+
+                        returningObject.addProperty("id", id);
+                        returningObject.addProperty("status", status);
+                        returningObject.addProperty("response", gson.toJson(result));
+
+                    } else if(type.equals("getPath")) {
+                        String startPage = request.get("startPage").getAsString();
+                        String stopPage = request.get("stopPage").getAsString();
+                        //*****not to sure about this casting...
+                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.getPath(startPage, stopPage);
+
+                        returningObject.addProperty("id", id);
+                        returningObject.addProperty("status", status);
+                        returningObject.addProperty("response", gson.toJson(result));
+
+                    } else if(type.equals("executeQuery")) {
+                        String query = request.get("query").getAsString();
+                        //*****not to sure about this casting...
+                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.executeQuery(query);
+
+                        returningObject.addProperty("id", id);
+                        returningObject.addProperty("status", status);
+                        returningObject.addProperty("response", gson.toJson(result));
+
+                    } else {
+                        out.println("Error: Not a valid type! :(");
+                    }
+
+                    //Send to client!
+                    out.println(returningObject);
+                    //I think we need this but am not sure why
+                    out.flush();
+                }
+
+            }
+        } finally {
+            out.close();
+            in.close();
+        }
+    }
+    //private final String[] methodNames =
+    //            new String[]{"simpleSearch", "getPage", "getConnectedPages",
+    //                    "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
+
     /**
      * Handle one client connection. Returns when client disconnects.
      * Parses the JSON request of client such that we can request the appropriate
@@ -81,7 +210,7 @@ public class WikiMediatorServer {
      * @throws IOException if connection encounters an error
      */
     //https://stackoverflow.com/questions/26284419/java-read-json-input-stream
-    private void handle(Socket socket) throws IOException {
+    /*private void handle(Socket socket) throws IOException {
         InputStreamReader inputStream = new InputStreamReader(socket.getInputStream());
         BufferedReader br = new BufferedReader(inputStream);
         JsonParser parser = new JsonParser();
@@ -100,7 +229,9 @@ public class WikiMediatorServer {
 
         }
     }
-    //private final String[] methodNames =
-    //            new String[]{"simpleSearch", "getPage", "getConnectedPages",
-    //                    "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
+    */
+
+
+
 }
+
