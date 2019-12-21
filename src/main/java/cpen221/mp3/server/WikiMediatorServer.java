@@ -104,7 +104,8 @@ public class WikiMediatorServer {
 
         //load previous stats from file:
         wmInstance.loadRequestsFromFile();
-        wmInstance.loadTrendingFromFile();
+        wmInstance.loadStatsFromFile();
+        wmInstance.loadStartTimeFromFile();
 
 
         // get the socket's input stream, and wrap converters around it
@@ -122,7 +123,6 @@ public class WikiMediatorServer {
 
         try {
             JsonParser parser = new JsonParser();
-            Gson gson = new Gson();
             JsonObject returningObject = new JsonObject();
             for (String line = in.readLine(); line != null; line = in.readLine()) {
                 JsonObject request = parser.parse(line).getAsJsonObject();
@@ -165,7 +165,8 @@ public class WikiMediatorServer {
 
                     //write stats to file!
                 wmInstance.writeRequestsToFile();
-                wmInstance.writeTrendingToFile();
+                wmInstance.writeStatsToFile();
+                wmInstance.writeStartTimeToFile();
 
                 out.println(returningObject.toString() + "\r\n");
             }
