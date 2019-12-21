@@ -140,6 +140,7 @@ public class WikiMediator {
     /* File names with which we save data to disc */
     private final String timeMapFile = "local/timeMapFile";
     private final String requestMapFile = "local/requestMapFile";
+    private final String startTimeFile = "local/startTimeFile";
 
     /**
      * Constructs an instance of the WikiMediator.
@@ -484,11 +485,11 @@ public class WikiMediator {
     /* Source: https://stackoverflow.com/questions/4738162/
     java-writing-reading-a-map-from-disk?fbclid=IwAR2k5WIuXOANDQXbHI56WU9wEb3wrR0_uCy6AWj9026Pzsn_D8GK1DLyEx0
     */
-    /**
-     * Writes this.timeMap and this.requestMap to the local directory
-     */
 
-    public synchronized void writeTrendingToFile() {
+    /**
+     * Writes this.timeMap to the localDirectory under the file name "timeMapFile"
+     */
+    public synchronized void writeStatsToFile() {
         try{
             FileOutputStream fos = new FileOutputStream(this.timeMapFile);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -502,6 +503,9 @@ public class WikiMediator {
 
     }
 
+    /**
+     * Writes this.requestMap to the localDirectory under the file name "requestMapFile"
+     */
     public synchronized void writeRequestsToFile() {
         try{
             FileOutputStream fos = new FileOutputStream(this.requestMapFile);
@@ -515,6 +519,43 @@ public class WikiMediator {
 
     }
 
+    /**
+     * Writes the start time of the wikiMediator to file
+     */
+    public synchronized void writeStartTimeToFile() {
+        try{
+            FileOutputStream fos = new FileOutputStream(this.startTimeFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(this.startTime);
+            oos.close();
+
+        }catch(Exception e){
+            System.out.println("Could not write to file");
+        }
+
+    }
+
+    /**
+     * Loads the start time of the wikiMedatior
+     */
+
+    public synchronized void loadStartTimeFromFile() {
+        try{
+            FileInputStream fis = new FileInputStream(this.startTimeFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            this.startTime = (LocalDateTime) ois.readObject();
+            ois.close();
+
+        }catch(Exception e){
+            System.out.println("Could not load file");
+        }
+
+    }
+
+
+    /**
+     * Loads the requestMap from the localDirectory
+     */
     public synchronized void loadRequestsFromFile() {
         try{
             FileInputStream fis = new FileInputStream(this.requestMapFile);
@@ -528,7 +569,10 @@ public class WikiMediator {
 
     }
 
-    public synchronized void loadTrendingFromFile() {
+    /**
+     * Loads the timeMap from the localDirectory
+     */
+    public synchronized void loadStatsFromFile() {
         try{
             FileInputStream fis = new FileInputStream(this.timeMapFile);
             ObjectInputStream ois = new ObjectInputStream(fis);
