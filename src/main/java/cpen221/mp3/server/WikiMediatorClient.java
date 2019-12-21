@@ -92,9 +92,9 @@ public class WikiMediatorClient {
             client.sendRequest(request);
             System.out.println("request sent!:" + request);
 
-            JsonObject reply = client.getReply();
+            //JsonObject reply = client.getReply();
 
-            System.out.println("Reply!:" + reply);
+            System.out.println("Reply!:" + client.in.readLine());
 
             client.close();
         } catch (IOException ioe) {

@@ -109,6 +109,15 @@ public class WikiMediatorServer {
         PrintWriter out = new PrintWriter(new OutputStreamWriter(
                 socket.getOutputStream()), true);
 
+        JsonObject returningObject = new JsonObject();
+        returningObject.addProperty("CPEN", "sucks");
+        //Send to client!
+        System.out.println("Done!:" + returningObject);
+        //out.println(returningObject);
+        out.write("hey");
+        //I think we need this but am not sure why
+        //out.flush();
+        /*
         try {
             JsonParser parser = new JsonParser();
             Gson gson = new Gson();
@@ -119,7 +128,7 @@ public class WikiMediatorServer {
             String id = request.get("id").getAsString();
             String type = request.get("type").getAsString();
             String status = "success";
-/*
+
             if(request.has("timeout")) {
                 String timeout = request.get("timeout").getAsString();
             }
@@ -204,8 +213,7 @@ public class WikiMediatorServer {
                 //this may be a problem.
                 out.println("Error: Not a valid type! :(");
             }
-*/
-            returningObject.addProperty("CPEN", "sucks");
+
             //Send to client!
             out.println(returningObject);
             //I think we need this but am not sure why
@@ -214,6 +222,7 @@ public class WikiMediatorServer {
             out.close();
             in.close();
         }
+        */
     }
 
     /**
