@@ -17,6 +17,10 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
 
 import cpen221.mp3.cache.Cache;
 import cpen221.mp3.cache.CacheObject;
@@ -67,6 +71,9 @@ public class WikiMediator {
     private final String[] methodNames =
             new String[]{"simpleSearch", "getPage", "getConnectedPages",
                     "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
+
+    private final String timeMapFile = "local/timeMap-Server";
+    private final String requestMapFile = "local/requestMap-Server";
 
     /**
      * Constructs an instance of the WikiMediator.
@@ -374,18 +381,61 @@ public class WikiMediator {
 
     /* Task 2 */
     /**
-     * Writes this.timeMap and this.requestMap to the local directory under the file ".keep"
+     * Writes this.timeMap and this.requestMap to the local directory under the file ".history"
      */
-    private void writeStatsToFile() {
+    
+    public void writeTrendingToFile() {
+        try{
+            FileOutputStream fos = new FileOutputStream(this.timeMapFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(this.timeMap);
+            oos.close();
+
+        }catch(Exception e){
+            System.out.println("Could not create file");
+        }
 
     }
 
-    /**
-     * Writes this.cache to the local directory under the file ".Cache"
-     */
-    private void writeCacheToFile() {
+    public void writeRequestsToFile() {
+        try{
+            FileOutputStream fos = new FileOutputStream(this.requestMapFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(this.requestMap);
+            oos.close();
+
+        }catch(Exception e){
+            System.out.println("Could not create file");
+        }
 
     }
+
+    public void loadRequestsFromFile() {
+        try{
+            FileInputStream fis = new FileInputStream(this.requestMapFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            this.requestMap = (Map) ois.readObject();
+            ois.close();
+
+        }catch(Exception e){
+            System.out.println("Could not create file");
+        }
+
+    }
+
+    public void loadTrendingFromFile() {
+        try{
+            FileInputStream fis = new FileInputStream(this.timeMapFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            this.timeMap = (Map) ois.readObject();
+            ois.close();
+
+        }catch(Exception e){
+            System.out.println("Could not create file");
+        }
+
+    }
+
 
     /* Task 3 */
 
@@ -440,7 +490,6 @@ public class WikiMediator {
             if (pageFound) {
                 break;
             }
-
         }
 
         // if we completely exhaust the queue, then stop Page is either invalid or an orphan page
@@ -684,7 +733,7 @@ public class WikiMediator {
             if (ctx.SORTED() != null) {
                 Collections.sort(queryList);
                 if (ctx.SORTED().getText().equals("desc")) {
-                    Collections.reverse((queryList));
+                    Collections.reverse(queryList);
                 }
             }
         }
