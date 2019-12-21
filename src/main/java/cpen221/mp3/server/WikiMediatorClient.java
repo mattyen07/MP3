@@ -24,7 +24,7 @@ public class WikiMediatorClient {
      * hostname at the specified port.
      * @throws IOException if can't connect
      */
-    public FibonacciClient(String hostname, int port) throws IOException {
+    public WikiMediatorClient(String hostname, int port) throws IOException {
         socket = new Socket(hostname, port);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -47,16 +47,11 @@ public class WikiMediatorClient {
      * @throws IOException if network or server failure
      */
     public JsonObject getReply() throws IOException {
-        String reply = in.readLine();
-        if (reply == null) {
-            throw new IOException("connection terminated unexpectedly");
-        }
+        JsonParser parser = new JsonParser();
+        Gson gson = new Gson();
+        JsonObject reply = parser.parse(in).getAsJsonObject();
 
-        try {
-            return new JsonObject(reply);
-        } catch (NumberFormatException nfe) {
-            throw new IOException("misformatted reply: " + reply);
-        }
+        return reply;
     }
 
     /**
@@ -73,26 +68,33 @@ public class WikiMediatorClient {
 
 
 
-    private static final int N = 100;
 
     /**
-     * Use a FibonacciServer to find the first N Fibonacci numbers.
+     *
      */
     public static void main(String[] args) {
         try {
-            FibonacciClient client = new FibonacciClient("localhost", FibonacciServer.FIBONACCI_PORT);
+            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
-            // send the requests to find the first N Fibonacci numbers
-            for (int x = 1; x <= N; ++x) {
-                client.sendRequest(x);
-                System.out.println("fibonacci("+x+") = ?");
-            }
+            //put junk in here!
 
-            // collect the replies
-            for (int x = 1; x <= N; ++x) {
-                BigInteger y = client.getReply();
-                System.out.println("fibonacci("+x+") = "+y);
-            }
+            String id = "yeet";
+            String type = "simpleSearch";
+            String query = "Barack Obama";
+            String limit = "12";
+
+            JsonObject request = new JsonObject();
+            request.addProperty("id", id);
+            request.addProperty("type", type);
+            request.addProperty("query", query);
+            request.addProperty("limit", limit);
+
+            client.sendRequest(request);
+            System.out.println("request sent!:" + request);
+
+            JsonObject reply = client.getReply();
+
+            System.out.println("Reply!:" + reply);
 
             client.close();
         } catch (IOException ioe) {

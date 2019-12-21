@@ -27,6 +27,7 @@ public class WikiMediatorServer {
     private WikiMediator wmInstance;
     private ServerSocket serverSocket;
     private int maxRequests;
+    private int numCurrentRequests;
 
     /**
      * Start a server at a given port number, with the ability to process
@@ -41,6 +42,7 @@ public class WikiMediatorServer {
         this.wmInstance = new WikiMediator();
         this.serverSocket = new ServerSocket(port);
         this.maxRequests = n;
+        this.numCurrentRequests = 0;
     }
 
     /**
@@ -52,25 +54,40 @@ public class WikiMediatorServer {
         while (true) {
             // block until a client connects
             final Socket socket = serverSocket.accept();
-            // create a new thread to handle that client
-            Thread handler = new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        try {
-                            handle(socket);
-                        } finally {
-                            socket.close();
-                        }
-                    } catch (IOException ioe) {
-                        // this exception wouldn't terminate serve(),
-                        // since we're now on a different thread, but
-                        // we still need to handle it
-                        ioe.printStackTrace();
-                    }
+
+            if(this.numCurrentRequests < this.maxRequests) {
+                synchronized (this) {
+                    this.numCurrentRequests++;
                 }
-            });
-            // start the thread
-            handler.start();
+                // create a new thread to handle that client
+                Thread handler = new Thread(new Runnable() {
+                    public void run() {
+                        try {
+                            try {
+                                handle(socket);
+                            } finally {
+
+                                socket.close();
+                            }
+                        } catch (IOException ioe) {
+                            // this exception wouldn't terminate serve(),
+                            // since we're now on a different thread, but
+                            // we still need to handle it
+                            ioe.printStackTrace();
+                        }
+                    }
+                });
+                // start the thread
+                handler.start();
+            } else {
+                //if there are too many requests being handled disconnect client.
+                PrintWriter out = new PrintWriter(new OutputStreamWriter(
+                        socket.getOutputStream()), true);
+                out.println("Sorry Server is full :(");
+                out.close();
+                socket.close();
+
+            }
         }
 
     }
@@ -96,108 +113,121 @@ public class WikiMediatorServer {
             JsonParser parser = new JsonParser();
             Gson gson = new Gson();
             JsonObject returningObject = new JsonObject();
-            JsonElement json = parser.parse(in);
-
-            if (json.isJsonArray()) {
-                JsonArray requestArray = json.getAsJsonArray();
-                for (int i = 0; i < requestArray.size(); i++) {
-                    JsonObject request = requestArray.get(i).getAsJsonObject();
-                    String id = request.get("id").getAsString();
-                    String type = request.get("type").getAsString();
-                    String status = "success";
-
-                    if(type.equals("simpleSearch")) {
-                        String query = request.get("query").getAsString();
-                        int limit = request.get("limit").getAsInt();
+            JsonObject request = parser.parse(in).getAsJsonObject();
 
 
-                        //*****not to sure about this casting...
-                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.simpleSearch(query, limit);
-
-
-                        returningObject.addProperty("id", id);
-                        returningObject.addProperty("status", status);
-                        returningObject.addProperty("response", gson.toJson(result));
-
-                    } else if(type.equals("getPage")) {
-                        String pageTitle = request.get("pageTitle").getAsString();
-                        String result = this.wmInstance.getPage(pageTitle);
-
-                        returningObject.addProperty("id", id);
-                        returningObject.addProperty("status", status);
-                        returningObject.addProperty("response", gson.toJson(result));
-
-                    } else if(type.equals("getConnectedPages")) {
-                        String pageTitle = request.get("pageTitle").getAsString();
-                        int hops = request.get("hops").getAsInt();
-
-                        //*****not to sure about this casting...
-                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.getConnectedPages(pageTitle, hops);
-
-                        returningObject.addProperty("id", id);
-                        returningObject.addProperty("status", status);
-                        returningObject.addProperty("response", gson.toJson(result));
-
-                    } else if(type.equals("zeitgeist")) {
-                        int limit = request.get("limit").getAsInt();
-                        //*****not to sure about this casting...
-                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.zeitgeist(limit);
-
-                        returningObject.addProperty("id", id);
-                        returningObject.addProperty("status", status);
-                        returningObject.addProperty("response", gson.toJson(result));
-
-                    } else if(type.equals("trending")) {
-                        int limit = request.get("limit").getAsInt();
-                        //*****not to sure about this casting...
-                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.trending(limit);
-
-                        returningObject.addProperty("id", id);
-                        returningObject.addProperty("status", status);
-                        returningObject.addProperty("response", gson.toJson(result));
-
-                    } else if(type.equals("peakLoad30s")) {
-                        int result = this.wmInstance.peakLoad30s();
-
-                        returningObject.addProperty("id", id);
-                        returningObject.addProperty("status", status);
-                        returningObject.addProperty("response", gson.toJson(result));
-
-                    } else if(type.equals("getPath")) {
-                        String startPage = request.get("startPage").getAsString();
-                        String stopPage = request.get("stopPage").getAsString();
-                        //*****not to sure about this casting...
-                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.getPath(startPage, stopPage);
-
-                        returningObject.addProperty("id", id);
-                        returningObject.addProperty("status", status);
-                        returningObject.addProperty("response", gson.toJson(result));
-
-                    } else if(type.equals("executeQuery")) {
-                        String query = request.get("query").getAsString();
-                        //*****not to sure about this casting...
-                        ArrayList<String> result = (ArrayList<String>) this.wmInstance.executeQuery(query);
-
-                        returningObject.addProperty("id", id);
-                        returningObject.addProperty("status", status);
-                        returningObject.addProperty("response", gson.toJson(result));
-
-                    } else {
-                        out.println("Error: Not a valid type! :(");
-                    }
-
-                    //Send to client!
-                    out.println(returningObject);
-                    //I think we need this but am not sure why
-                    out.flush();
-                }
-
+            String id = request.get("id").getAsString();
+            String type = request.get("type").getAsString();
+            String status = "success";
+/*
+            if(request.has("timeout")) {
+                String timeout = request.get("timeout").getAsString();
             }
+
+            if(type.equals("simpleSearch")) {
+                String query = request.get("query").getAsString();
+                int limit = request.get("limit").getAsInt();
+
+
+                //*****not to sure about this casting...
+                ArrayList<String> result = (ArrayList<String>) this.wmInstance.simpleSearch(query, limit);
+
+
+                returningObject.addProperty("id", id);
+                returningObject.addProperty("status", status);
+                returningObject.addProperty("response", gson.toJson(result));
+
+            } else if(type.equals("getPage")) {
+                String pageTitle = request.get("pageTitle").getAsString();
+                String result = this.wmInstance.getPage(pageTitle);
+
+                returningObject.addProperty("id", id);
+                returningObject.addProperty("status", status);
+                returningObject.addProperty("response", gson.toJson(result));
+
+            } else if(type.equals("getConnectedPages")) {
+                String pageTitle = request.get("pageTitle").getAsString();
+                int hops = request.get("hops").getAsInt();
+
+                //*****not to sure about this casting...
+                ArrayList<String> result = (ArrayList<String>) this.wmInstance.getConnectedPages(pageTitle, hops);
+
+                returningObject.addProperty("id", id);
+                returningObject.addProperty("status", status);
+                returningObject.addProperty("response", gson.toJson(result));
+
+            } else if(type.equals("zeitgeist")) {
+                int limit = request.get("limit").getAsInt();
+                //*****not to sure about this casting...
+                ArrayList<String> result = (ArrayList<String>) this.wmInstance.zeitgeist(limit);
+
+                returningObject.addProperty("id", id);
+                returningObject.addProperty("status", status);
+                returningObject.addProperty("response", gson.toJson(result));
+
+            } else if(type.equals("trending")) {
+                int limit = request.get("limit").getAsInt();
+                //*****not to sure about this casting...
+                ArrayList<String> result = (ArrayList<String>) this.wmInstance.trending(limit);
+
+                returningObject.addProperty("id", id);
+                returningObject.addProperty("status", status);
+                returningObject.addProperty("response", gson.toJson(result));
+
+            } else if(type.equals("peakLoad30s")) {
+                int result = this.wmInstance.peakLoad30s();
+
+                returningObject.addProperty("id", id);
+                returningObject.addProperty("status", status);
+                returningObject.addProperty("response", gson.toJson(result));
+
+            } else if(type.equals("getPath")) {
+                String startPage = request.get("startPage").getAsString();
+                String stopPage = request.get("stopPage").getAsString();
+                //*****not to sure about this casting...
+                ArrayList<String> result = (ArrayList<String>) this.wmInstance.getPath(startPage, stopPage);
+
+                returningObject.addProperty("id", id);
+                returningObject.addProperty("status", status);
+                returningObject.addProperty("response", gson.toJson(result));
+
+            } else if(type.equals("executeQuery")) {
+                String query = request.get("query").getAsString();
+                //*****not to sure about this casting...
+                ArrayList<String> result = (ArrayList<String>) this.wmInstance.executeQuery(query);
+
+                returningObject.addProperty("id", id);
+                returningObject.addProperty("status", status);
+                returningObject.addProperty("response", gson.toJson(result));
+
+            } else {
+                //this may be a problem.
+                out.println("Error: Not a valid type! :(");
+            }
+*/
+            returningObject.addProperty("CPEN", "sucks");
+            //Send to client!
+            out.println(returningObject);
+            //I think we need this but am not sure why
+            out.flush();
         } finally {
             out.close();
             in.close();
         }
     }
+
+    /**
+     * Start a FibonacciServer running on the default port.
+     */
+    public static void main(String[] args) {
+        try {
+            WikiMediatorServer server = new WikiMediatorServer(WIKIMEDIATORSERVER_PORT, 10);
+            server.serve();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     //private final String[] methodNames =
     //            new String[]{"simpleSearch", "getPage", "getConnectedPages",
     //                    "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
