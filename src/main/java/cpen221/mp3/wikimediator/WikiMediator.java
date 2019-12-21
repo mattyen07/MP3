@@ -503,9 +503,11 @@ public class WikiMediator {
         boolean titleFlag = false;
         boolean authorFlag = false;
         boolean checkAuthors = false;
+        boolean andFlag = false;
+        boolean orFlag = false;
         String author = "";
         Stack<String> results = new Stack<>();
-        List<String> returnList = new ArrayList<>();
+        List<String> seenList = new ArrayList<>();
         List<String> queryList = new ArrayList<>();
         Wiki wiki = new Wiki ("en.wikipedia.org");
 
@@ -518,27 +520,35 @@ public class WikiMediator {
                 if (authorFlag) {
                     for (String c : wiki.getCategoryMembers(category)) {
                         String editor = wiki.getLastEditor(c);
-                        if (!returnList.contains(editor)) {
-                            returnList.add(editor);
+                        if (!results.contains(editor)) {
+                            results.push(editor);
                         }
                     }
                 } else if (titleFlag) {
-                    returnList.addAll(wiki.getCategoryMembers(category));
+                    for (String t : wiki.getCategoryMembers(category)) {
+                        results.push(t);
+                    }
                 } else {
-                    returnList.addAll(wiki.getCategoriesOnPage(category));
+                    for (String c : wiki.getCategoriesOnPage(category)) {
+                        results.push(c);
+                    }
                 }
+                results.push("");
 
             } else if (ctx.TITLE() != null) {
                 int length = ctx.STRING().getText().length();
                 String pageTitle = ctx.STRING().getText().substring(1, length - 1);
 
                 if (authorFlag) {
-                    returnList.add(wiki.getLastEditor(pageTitle));
+                    results.push(wiki.getLastEditor(pageTitle));
                 } else if (categoryFlag) {
-                    returnList.addAll(wiki.getCategoriesOnPage(pageTitle));
+                    for (String c : wiki.getCategoriesOnPage(pageTitle)) {
+                        results.push(c);
+                    }
                 } else {
-                    returnList.add(pageTitle);
+                    results.push(pageTitle);
                 }
+                results.push("");
 
             } else {
                 int length = ctx.STRING().getText().length();
@@ -549,56 +559,127 @@ public class WikiMediator {
 
         @Override
         public void exitCondition(QueryParser.ConditionContext ctx) {
-            if (ctx.LPAREN() != null) {
-                for (String s : returnList) {
-                    results.push(s);
-                }
-                returnList = new ArrayList<>();
-            }
 
             if (ctx.RPAREN() != null) {
+                if (!results.isEmpty() && results.peek().equals("")) {
+                    results.pop();
+                }
+
                 if (ctx.OR() != null) {
-                    while (!results.isEmpty()) {
-                        returnList.add(results.pop());
+                    if (andFlag) {
+                        andFlag = false;
+                        orFlag = true;
+                        while (!results.isEmpty() && !results.peek().equals("")) {
+                            String checkQuery = results.pop();
+                            if (checkAuthors) {
+                                if (wiki.exists(checkQuery) && wiki.getLastEditor(checkQuery).equals(author)) {
+                                    queryList.add(checkQuery);
+                                } else if (checkQuery.equals(author)) {
+                                    queryList.add(checkQuery);
+                                }
+
+                            } else {
+                                seenList.add(checkQuery);
+                            }
+                        }
+                        if (!results.isEmpty() && results.peek().equals("")) {
+                            results.pop();
+                        }
+
+                    }  else if (orFlag) {
+                        orFlag = false;
+                        while (!results.isEmpty() && !results.peek().equals("")) {
+                            queryList.add(results.pop());
+                        }
+
+                    } else {
+                        orFlag = true;
                     }
                 } else {
-                    List<String> duplicates = new ArrayList<>();
-                    while (!results.isEmpty()) {
-                        String checkQuery = results.pop();
-                        if (checkAuthors) {
-                            if (wiki.exists(checkQuery) && wiki.getLastEditor(checkQuery).equals(author)) {
-                                duplicates.add(checkQuery);
+                    if (orFlag) {
+                        orFlag = false;
+                        andFlag = true;
+                        if (!checkAuthors) {
+                            while (!results.isEmpty() && !results.peek().equals("")) {
+                                seenList.add(results.pop());
                             }
-                            else if (checkQuery.equals(author)) {
-                                duplicates.add(checkQuery);
+                            if (!results.isEmpty() && results.peek().equals("")) {
+                                results.pop();
                             }
+                        }
 
-                        } else {
-                            if (returnList.contains(checkQuery)) {
-                                duplicates.add(checkQuery);
+                    } else if (andFlag) {
+                        andFlag = false;
+                        while (!results.isEmpty() && !results.peek().equals("")) {
+                            String checkQuery = results.pop();
+                            if (checkAuthors) {
+                                if (wiki.exists(checkQuery) && wiki.getLastEditor(checkQuery).equals(author)) {
+                                    queryList.add(checkQuery);
+                                } else if (checkQuery.equals(author)) {
+                                    queryList.add(checkQuery);
+                                }
+
                             } else {
-                                returnList.add(checkQuery);
+                                seenList.add(checkQuery);
                             }
+                        }
 
+                    } else {
+                        andFlag = true;
+                        while (!results.isEmpty() && !results.peek().equals("")) {
+                            if (!checkAuthors) {
+                                seenList.add(results.pop());
+                            } else {
+                                seenList.add(author);
+                                break;
+                            }
                         }
                     }
-
-                    for (String q : duplicates) {
-                        queryList.add(q);
-
-                    }
-                    returnList = new ArrayList<>();
                 }
             }
+
         }
 
         @Override public void exitQuery(QueryParser.QueryContext ctx) {
 
-            for (String s : returnList) {
-                if (!queryList.contains(s)) {
-                    queryList.add(s);
+            if (orFlag && !andFlag) {
+                while (!results.isEmpty()) {
+                    if (!results.peek().equals("")) {
+                        queryList.add(results.pop());
+                    } else {
+                        results.pop();
+                    }
+                }
+            } else if (andFlag && !orFlag) {
+                while (!results.isEmpty()) {
+                    String checkQuery = results.pop();
+                    if (!checkQuery.equals("")) {
+                        if (checkAuthors) {
+                            String editor = wiki.getLastEditor(checkQuery);
+                            if (wiki.exists(checkQuery) && (seenList.contains(editor) || author.equals(editor))) {
+                                queryList.add(checkQuery);
+                            } else if (checkQuery.equals(author)) {
+                                queryList.add(checkQuery);
+                            }
+                        } else {
+                            if (seenList.contains(checkQuery)) {
+                                if (!results.peek().equals("")) {
+                                    queryList.add(checkQuery);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                while (!results.isEmpty()) {
+                    if (!results.peek().equals("")) {
+                        queryList.add(results.pop());
+                    } else {
+                        results.pop();
+                    }
                 }
             }
+
 
             if (ctx.SORTED() != null) {
                 Collections.sort(queryList);

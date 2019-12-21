@@ -618,7 +618,7 @@ public class Tests {
         Wiki wiki = new Wiki ("en.wikipedia.org");
         List<String> answer = new ArrayList<>();
         answer = wiki.getCategoryMembers("Category: Illinois state senators");
-
+        Collections.reverse(answer);
         assertEquals(answer, wm.executeQuery("get page where category is 'Illinois state senators'"));
     }
 
@@ -756,6 +756,7 @@ public class Tests {
         List<String> answer = new ArrayList<>();
         String query = "get category where category is 'Illinois state senators'";
         answer.addAll(wiki.getCategoriesOnPage("Category:Illinois state senators"));
+        Collections.reverse(answer);
 
         assertEquals(answer, wm.executeQuery(query));
     }
@@ -787,6 +788,41 @@ public class Tests {
 
         Collections.sort(answer);
         Collections.reverse(answer);
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest16() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        String query = "get page where (category is 'HuffPost writers and columnists' or (title is 'hockey' and author is 'Smjg'))";
+        answer.addAll(wiki.getCategoryMembers("Category:HuffPost writers and columnists"));
+        answer.add("hockey");
+        Collections.reverse(answer);
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest17() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get page where (title is 'Ultimate' or (title is 'Hockey' or author is 'Smjg'))";
+        answer.add("Hockey");
+        answer.add("Ultimate");
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest18() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        String query = "get author where (title is 'Hockey' and (title is 'Hockey' and title is 'Soccer'))";
+        answer.add(wiki.getLastEditor("Hockey"));
 
         assertEquals(answer, wm.executeQuery(query));
     }
