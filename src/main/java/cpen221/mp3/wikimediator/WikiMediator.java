@@ -10,6 +10,13 @@ import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Stack;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import cpen221.mp3.cache.Cache;
 import cpen221.mp3.cache.CacheObject;
@@ -387,17 +394,28 @@ public class WikiMediator {
      * @param startPage a page on en.wikipedia.org
      * @param stopPage a page on en.wikipedia.org
      * @return A list of strings on the path between the start Page and stop Page
-     * Returns an empty list of strings if no such path exists
+     * Returns an empty list of strings if no such path exists or getPath exceeds 5 minutes
+     * If start Page equals stop Page, returns a list of the single page
      */
     public List<String> getPath(String startPage, String stopPage) {
+        List<LocalDateTime> requestDates = this.requestMap.get("getPath");
+        requestDates.add(LocalDateTime.now());
+        this.requestMap.replace("getPath", requestDates);
+        LocalDateTime startTime = LocalDateTime.now();
         Queue<String> queue = new LinkedBlockingQueue<>();
         Map<String, String> parentMap = new ConcurrentHashMap<>();
         parentMap.put(startPage, startPage);
         queue.add(startPage);
         boolean pageFound = false;
+        
+        if (startPage.equals(stopPage)) {
+            List<String> returnList = new ArrayList<>();
+            returnList.add(startPage);
+            return returnList;
+        }
 
         // if we reach end of queue without finding the page, no possible path
-        while (!queue.isEmpty()) {
+        while (!queue.isEmpty() && LocalDateTime.now().isBefore(startTime.plusMinutes(5))) {
             String checkPage = queue.remove();
             List<String> linksOnPage = this.wiki.getLinksOnPage(checkPage);
             for (String page : linksOnPage) {
@@ -439,7 +457,7 @@ public class WikiMediator {
             }
 
             List<String> pagePath = new ArrayList<>();
-            for (int i = pathList.size() - 1; i >= 0; i++) {
+            for (int i = pathList.size() - 1; i >= 0; i--) {
                 pagePath.add(pathList.get(i));
 
             }
@@ -455,7 +473,153 @@ public class WikiMediator {
      * Returns an empty list if no such pages exist
      */
     public List<String> executeQuery(String query) {
-        return null;
+        List<LocalDateTime> requestDates = this.requestMap.get("executeQuery");
+        requestDates.add(LocalDateTime.now());
+        this.requestMap.replace("executeQuery", requestDates);
+        CharStream stream = new ANTLRInputStream(query);
+        QueryLexer lexer = new QueryLexer(stream);
+        lexer.reportErrorsAsExceptions();
+        TokenStream tokens = new CommonTokenStream(lexer);
+
+        // Feed the tokens into the parser.
+        QueryParser parser = new QueryParser(tokens);
+        parser.reportErrorsAsExceptions();
+
+        // Generate the parse tree using the starter rule.
+        ParseTree tree = parser.query();
+
+        System.err.println(tree.toStringTree(parser));
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        QueryListener_QueryCreator listener = new QueryListener_QueryCreator();
+        walker.walk(listener, tree);
+
+        List<String> queryList = listener.getQueries();
+        return queryList;
+    }
+
+    private static class QueryListener_QueryCreator extends QueryBaseListener {
+        boolean categoryFlag = false;
+        boolean titleFlag = false;
+        boolean authorFlag = false;
+        boolean checkAuthors = false;
+        String author = "";
+        Stack<String> results = new Stack<>();
+        List<String> returnList = new ArrayList<>();
+        List<String> queryList = new ArrayList<>();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+
+        @Override
+        public void exitSimpleCondition(QueryParser.SimpleConditionContext ctx) {
+            if (ctx.CATEGORY() != null) {
+                int length = ctx.STRING().getText().length();
+                String category = "Category:" + ctx.STRING().getText().substring(1, length - 1);
+
+                if (authorFlag) {
+                    for (String c : wiki.getCategoryMembers(category)) {
+                        String editor = wiki.getLastEditor(c);
+                        if (!returnList.contains(editor)) {
+                            returnList.add(editor);
+                        }
+                    }
+                } else if (titleFlag) {
+                    returnList.addAll(wiki.getCategoryMembers(category));
+                } else {
+                    returnList.addAll(wiki.getCategoriesOnPage(category));
+                }
+
+            } else if (ctx.TITLE() != null) {
+                int length = ctx.STRING().getText().length();
+                String pageTitle = ctx.STRING().getText().substring(1, length - 1);
+
+                if (authorFlag) {
+                    returnList.add(wiki.getLastEditor(pageTitle));
+                } else if (categoryFlag) {
+                    returnList.addAll(wiki.getCategoriesOnPage(pageTitle));
+                } else {
+                    returnList.add(pageTitle);
+                }
+
+            } else {
+                int length = ctx.STRING().getText().length();
+                author = ctx.STRING().getText().substring(1, length - 1);
+                checkAuthors = true;
+            }
+        }
+
+        @Override
+        public void exitCondition(QueryParser.ConditionContext ctx) {
+            if (ctx.LPAREN() != null) {
+                for (String s : returnList) {
+                    results.push(s);
+                }
+                returnList = new ArrayList<>();
+            }
+
+            if (ctx.RPAREN() != null) {
+                if (ctx.OR() != null) {
+                    while (!results.isEmpty()) {
+                        returnList.add(results.pop());
+                    }
+                } else {
+                    List<String> duplicates = new ArrayList<>();
+                    while (!results.isEmpty()) {
+                        String checkQuery = results.pop();
+                        if (checkAuthors) {
+                            if (wiki.exists(checkQuery) && wiki.getLastEditor(checkQuery).equals(author)) {
+                                duplicates.add(checkQuery);
+                            }
+                            else if (checkQuery.equals(author)) {
+                                duplicates.add(checkQuery);
+                            }
+
+                        } else {
+                            if (returnList.contains(checkQuery)) {
+                                duplicates.add(checkQuery);
+                            } else {
+                                returnList.add(checkQuery);
+                            }
+
+                        }
+                    }
+
+                    for (String q : duplicates) {
+                        queryList.add(q);
+
+                    }
+                    returnList = new ArrayList<>();
+                }
+            }
+        }
+
+        @Override public void exitQuery(QueryParser.QueryContext ctx) {
+
+            for (String s : returnList) {
+                if (!queryList.contains(s)) {
+                    queryList.add(s);
+                }
+            }
+
+            if (ctx.SORTED() != null) {
+                Collections.sort(queryList);
+                if (ctx.SORTED().getText().equals("desc")) {
+                    Collections.reverse((queryList));
+                }
+            }
+        }
+
+        @Override
+        public void enterQuery(QueryParser.QueryContext ctx) {
+            if (ctx.ITEM().getText().equals("author")) {
+                authorFlag = true;
+            } else if (ctx.ITEM().getText().equals("page")) {
+                titleFlag = true;
+            } else {
+                categoryFlag = true;
+            }
+        }
+
+        public List<String> getQueries() { return queryList; }
     }
 
 }
