@@ -15,8 +15,8 @@ public class TimePair {
         this.expiryTime is the time of expiry.
      */
 
-    private LocalDateTime lastAccess;
-    private LocalDateTime expiryTime;
+    private final LocalDateTime lastAccess;
+    private final LocalDateTime expiryTime;
 
     /**
      * Constructs an immutable pair of times

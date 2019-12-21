@@ -20,6 +20,27 @@ public class Cache<T extends Cacheable> {
         expired items are removed from the cache.
      */
 
+    /*
+    Thread Safety Arguments:
+        DSIZE and DTIMEOUT are final, and immutable variables, thus are thread safe
+
+        capacity and timeout are final and immutable variables, thus are thread safe
+
+        cacheMap: this uses concurrent hashMap which has operations that are thread safe, however when
+        being accesses, must be wrapped in a synchronized block which we do
+
+        put: this method is thread safe because we wrap sections that access the cacheMap in synchronized blocks
+
+        get: this method is thread safe because we wrap sections that access the cacheMap in synchronized blocks
+
+        touch: this method is thread safe because we wrap sections that access the cacheMap in synchronized block
+
+        update: this method is thread safe because we wrap sections that access the cacheMap in synchronized block
+
+        All of the above methods local variables are thread safe since each thread will have it's own space
+        allocated for local variables
+     */
+
     /* the default cache size is 32 objects */
     public static final int DSIZE = 32;
 

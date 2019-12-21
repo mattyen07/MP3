@@ -166,6 +166,14 @@ public class Tests {
     }
 
     @Test
+    public void zeitgeistTest4() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+
+        assertEquals(answer, wm.zeitgeist(5));
+    }
+
+    @Test
     public void trendingTest1() {
         WikiMediator wm = new WikiMediator(new Cache());
         List<String> answer = new ArrayList<>();
@@ -249,6 +257,14 @@ public class Tests {
         wm.getPage("ultimate");
 
         assertEquals(answer, wm.trending(0));
+    }
+
+    @Test
+    public void trendingTest5() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+
+        assertEquals(answer, wm.trending(5));
     }
 
     @Test
@@ -576,10 +592,10 @@ public class Tests {
         wm.getPage("soccer");
         wm.getPage("soccer");
         wm.getPage("ultimate");
-        wm.writeTrendingToFile();
+        wm.writeStatsToFile();
 
         WikiMediator wm1 = new WikiMediator(new Cache());
-        wm1.loadTrendingFromFile();
+        wm1.loadStatsFromFile();
         answer.add("Obama");
         answer.add("hockey");
         answer.add("soccer");
@@ -603,7 +619,7 @@ public class Tests {
         File file = new File ("local/timeMapFile");
         file.delete();
         WikiMediator wm1 = new WikiMediator(new Cache());
-        wm1.loadTrendingFromFile();
+        wm1.loadStatsFromFile();
 
         assertEquals(answer, wm1.trending(3));
     }
@@ -623,9 +639,11 @@ public class Tests {
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
         wm.writeRequestsToFile();
+        wm.writeStartTimeToFile();
 
         WikiMediator wm1 = new WikiMediator(new Cache());
         wm1.loadRequestsFromFile();
+        wm1.loadStartTimeFromFile();
 
         assertEquals(11, wm1.peakLoad30s());
     }
@@ -651,6 +669,16 @@ public class Tests {
 
         assertEquals(1, wm1.peakLoad30s());
     }
+
+    @Test
+    public void startTimeTest1() {
+        WikiMediator wm = new WikiMediator();
+
+        File file = new File("local/startTimeFile");
+        file.delete();
+        wm.loadStartTimeFromFile();
+    }
+
 
     @Test
     public void getPathTest1() {

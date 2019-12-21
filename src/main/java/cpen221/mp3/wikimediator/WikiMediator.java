@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Stack;
 
-import com.ibm.icu.impl.ICUNotifier;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -48,6 +47,70 @@ public class WikiMediator {
             methodNames is an array of all non-constructor public methods.
      */
 
+    /*
+    Thread Safety Arguments:
+       timeMap: every time the timeMap is accessed, it is wrapped into a synchronized block to protect
+       the map from being added to or removed. All actions of the timeMap are atomic since we use
+       a concurrent hashMap which prevents certain data races.
+
+       requestMap: every time the request map is accessed, it is wrapped into a synchronized block to
+       protect the map from being added to or removed while being read. All actions of the timeMap are
+       atomic since we use a concurrent hashMap which prevents certain data races.
+
+       cache: is never changed, only accessed and is made thread safe in the cache class
+       startTime: is never edited, thus no need to be synchronized as it is only read from
+
+       methodNames: are never edited, thus no need to be synchronized as they are only read from
+
+       timeMapFile and requestMapFile: are final and immutable types, thus are thread safe
+
+       simpleSearch: this method is thread safe since we use synchronized blocks and critical sections
+       to prevent data races. Furthermore, the addToMap function is synchronized, thus only one thread
+       can add to the timeMap at one time. In addition, the requestMap portion is synchronized such that
+       only one method can add to the requestMap at a time. When using the wiki to search, since we are
+       reading this data, this does not to be made thread safe and doesn't cause a data race since it is
+       local variable and is only reading from the wikipedia.
+
+       getPage: this method is thread safe because we use synchronized blocks and critical sections
+       to prevent data races. Furthermore, the addToMap function is synchronized and thus only one thread
+       can add to the timeMap at one time. In addition, the requestMap portion is synchronized such that
+       only one method can add to the requestMap at a time. When accessing wikipedia or the cache, since
+       the text variable is local and immutable, it is also thread safe and thus should return the right
+       value.
+
+       getConnectedHops: this method is thread safe because we use synchronized blocks around the section that
+       accesses the requestMap. Since each thread will have its own function call stack, the recursive helper
+       is also thread-safe since each thread will have it's own call stack and local variables.
+
+       zeitgeist: this method is thread safe because we use synchronized blocks around the sections that
+       access the timeMap. Furthermore, while iterating over the timeMap, this section
+       is a critical section and thus is wrapped in a synchronized block. The variables within the zeitgeist
+       method themselves are threadsafe since each thread will have it's own local function variables
+
+       trending: this method is thread safe because we use synchronized blocks around the sections that
+       access the timeMap. Furthermore, while iterating over the timeMap, this section
+       is a critical section and thus is wrapped in a synchronized block to prevent other methods from
+       writing to the map. The variables within the trending method are thread safe since each thread will
+       have it's own local function variables
+
+       peakLoad30s: this method is thread safe because we use synchronized blocks around the sections that
+       access the requestMap. Furthermore, while iterating over the intervals, this sectoin is wrapped in a
+       synchronized block and thus allows us to gain stats safely. The variables within the peakLoad30s are
+       thread safe since they are local variables.
+
+       getPath: this method is thread safe because we use synchronized blocks around the section that accesses
+       the requestMap. Furthermore, the remaining variables used within the method are local variables and are
+       threadsafe types, thus are thread safe.
+
+       executeQuery: this method is thread safe because we use synchronized blocks are the section that accesses
+       the requestMap. Furthermore, any variables or methods called in executeQuery are thread safe because they
+       are local function calls in to a thread's own call stack.
+
+       parse: this method is thread safe because we don't access any of the wikiMediator variables
+
+
+     */
+
     /* Default Cache Capacity */
     private static final int DEFAULTCAPACITY = 256;
 
@@ -74,8 +137,10 @@ public class WikiMediator {
             new String[]{"simpleSearch", "getPage", "getConnectedPages",
                     "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
 
+    /* File names with which we save data to disc */
     private final String timeMapFile = "local/timeMapFile";
     private final String requestMapFile = "local/requestMapFile";
+    private final String startTimeFile = "local/startTimeFile";
 
     /**
      * Constructs an instance of the WikiMediator.
@@ -129,16 +194,20 @@ public class WikiMediator {
      * If limit is equal to 0, returns an empty list of strings
      */
     public List<String> simpleSearch(String query, int limit) {
-        List<LocalDateTime> requestDates = this.requestMap.get("simpleSearch");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("simpleSearch", requestDates);
+        synchronized(this) {
+            List<LocalDateTime> requestDates = this.requestMap.get("simpleSearch");
+            requestDates.add(LocalDateTime.now());
+            this.requestMap.replace("simpleSearch", requestDates);
+        }
 
         addToMap(query);
+        List<String> searches = new ArrayList<>();
 
         if (limit == 0) {
-            return new ArrayList<>();
+            return searches;
         } else {
-            return this.wiki.search(query, limit);
+            searches = this.wiki.search(query, limit);
+            return searches;
         }
     }
 
@@ -151,9 +220,11 @@ public class WikiMediator {
      * If page title is invalid, getPage follows the behaviour of the jWiki API
      */
     public String getPage(String pageTitle) {
-        List<LocalDateTime> requestDates = this.requestMap.get("getPage");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("getPage", requestDates);
+        synchronized (this) {
+            List<LocalDateTime> requestDates = this.requestMap.get("getPage");
+            requestDates.add(LocalDateTime.now());
+            this.requestMap.replace("getPage", requestDates);
+        }
 
         String text;
         addToMap(pageTitle);
@@ -200,9 +271,11 @@ public class WikiMediator {
      * be found through links from the initial pageTitle
      */
     public List<String> getConnectedPages(String pageTitle, int hops) {
-        List<LocalDateTime> requestDates = this.requestMap.get("getConnectedPages");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("getConnectedPages", requestDates);
+        synchronized (this) {
+            List<LocalDateTime> requestDates = this.requestMap.get("getConnectedPages");
+            requestDates.add(LocalDateTime.now());
+            this.requestMap.replace("getConnectedPages", requestDates);
+        }
 
         Set<String> pageLinks = new HashSet<>();
         pageLinks.add(pageTitle);
@@ -256,12 +329,16 @@ public class WikiMediator {
      * If limit = 0, returns an empty list of strings
      */
     public List<String> zeitgeist(int limit) {
-        List<LocalDateTime> requestDates = this.requestMap.get("zeitgeist");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("zeitgeist", requestDates);
+        synchronized (this) {
+            List<LocalDateTime> requestDates = this.requestMap.get("zeitgeist");
+            requestDates.add(LocalDateTime.now());
+            this.requestMap.replace("zeitgeist", requestDates);
+        }
 
-        if (this.timeMap.keySet().isEmpty()) {
-            return new ArrayList<>();
+        synchronized (this) {
+            if (this.timeMap.keySet().isEmpty()) {
+                return new ArrayList<>();
+            }
         }
 
         List<String> mostCommon = new ArrayList<>();
@@ -269,17 +346,19 @@ public class WikiMediator {
         int count = 0;
         String mostOccurringSearch = "";
 
-        while (count < limit) {
-            maxOccurrences = 0;
-            for (String search : this.timeMap.keySet()) {
-                if ((this.timeMap.get(search).size() > maxOccurrences)
-                        && !mostCommon.contains(search)) {
-                    maxOccurrences = this.timeMap.get(search).size();
-                    mostOccurringSearch = search;
+        synchronized (this) {
+            while (count < limit) {
+                maxOccurrences = 0;
+                for (String search : this.timeMap.keySet()) {
+                    if ((this.timeMap.get(search).size() > maxOccurrences)
+                            && !mostCommon.contains(search)) {
+                        maxOccurrences = this.timeMap.get(search).size();
+                        mostOccurringSearch = search;
+                    }
                 }
+                count++;
+                mostCommon.add(mostOccurringSearch);
             }
-            count++;
-            mostCommon.add(mostOccurringSearch);
         }
 
         return mostCommon;
@@ -296,28 +375,34 @@ public class WikiMediator {
      * If limit = 0, returns an empty list of strings
      */
     public List<String> trending(int limit) {
-        List<LocalDateTime> requestDates = this.requestMap.get("trending");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("trending", requestDates);
+        synchronized (this) {
+            List<LocalDateTime> requestDates = this.requestMap.get("trending");
+            requestDates.add(LocalDateTime.now());
+            this.requestMap.replace("trending", requestDates);
+        }
 
         List<String> trendingList = new ArrayList<>();
         LocalDateTime currentTime = LocalDateTime.now();
         Map<String, Integer> frequencyList = new ConcurrentHashMap<>();
 
-        if (this.timeMap.keySet().isEmpty()) {
-            return new ArrayList<>();
+        synchronized (this) {
+            if (this.timeMap.keySet().isEmpty()) {
+                return new ArrayList<>();
+            }
         }
 
-        for (String request : this.timeMap.keySet()) {
-            List<LocalDateTime> requestList = this.timeMap.get(request);
-            int count = 0;
-            for (LocalDateTime time : requestList) {
-                LocalDateTime compareTime = currentTime.minusSeconds(30);
-                if (time.isAfter(compareTime)) {
-                    count++;
+        synchronized (this) {
+            for (String request : this.timeMap.keySet()) {
+                List<LocalDateTime> requestList = this.timeMap.get(request);
+                int count = 0;
+                for (LocalDateTime time : requestList) {
+                    LocalDateTime compareTime = currentTime.minusSeconds(30);
+                    if (time.isAfter(compareTime)) {
+                        count++;
+                    }
                 }
+                frequencyList.put(request, count);
             }
-            frequencyList.put(request, count);
         }
 
         int limitCount = 0;
@@ -350,34 +435,41 @@ public class WikiMediator {
      *
      */
     public int peakLoad30s() {
-        List<LocalDateTime> requestDates = this.requestMap.get("peakLoad30s");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("peakLoad30s", requestDates);
+        synchronized (this) {
+            List<LocalDateTime> requestDates = this.requestMap.get("peakLoad30s");
+            requestDates.add(LocalDateTime.now());
+            this.requestMap.replace("peakLoad30s", requestDates);
+        }
+
         LocalDateTime startingTime = this.startTime;
         LocalDateTime endTime = LocalDateTime.now().minusSeconds(29);
         int maxLoad = 0;
         List<Integer> intervalRequestsList = new ArrayList<>();
 
-        if (endTime.isBefore(startingTime)) {
-            for (String request : this.requestMap.keySet()) {
-                maxLoad += this.requestMap.get(request).size();
+        synchronized (this) {
+            if (endTime.isBefore(startingTime)) {
+                for (String request : this.requestMap.keySet()) {
+                    maxLoad += this.requestMap.get(request).size();
+                }
+                return maxLoad;
             }
-            return maxLoad;
         }
 
-        while (startingTime.isBefore(endTime)) {
-            int intervalRequests = 0;
-            LocalDateTime intervalTime = startingTime.plusSeconds(30);
-            for (String request : this.requestMap.keySet()) {
-                for (LocalDateTime time : this.requestMap.get(request)) {
-                    if (time.isBefore(intervalTime)
-                            && (time.isAfter(startingTime) || time.isEqual(startingTime))) {
-                        intervalRequests++;
+        synchronized (this) {
+            while (startingTime.isBefore(endTime)) {
+                int intervalRequests = 0;
+                LocalDateTime intervalTime = startingTime.plusSeconds(30);
+                for (String request : this.requestMap.keySet()) {
+                    for (LocalDateTime time : this.requestMap.get(request)) {
+                        if (time.isBefore(intervalTime)
+                                && (time.isAfter(startingTime) || time.isEqual(startingTime))) {
+                            intervalRequests++;
+                        }
                     }
                 }
+                intervalRequestsList.add(intervalRequests);
+                startingTime = startingTime.plusSeconds(1);
             }
-            intervalRequestsList.add(intervalRequests);
-            startingTime = startingTime.plusSeconds(1);
         }
 
         for (int intervalLoads : intervalRequestsList) {
@@ -393,57 +485,101 @@ public class WikiMediator {
     /* Source: https://stackoverflow.com/questions/4738162/
     java-writing-reading-a-map-from-disk?fbclid=IwAR2k5WIuXOANDQXbHI56WU9wEb3wrR0_uCy6AWj9026Pzsn_D8GK1DLyEx0
     */
-    /**
-     * Writes this.timeMap and this.requestMap to the local directory
-     */
 
-    public void writeTrendingToFile() {
-        try{
+    /**
+     * Writes this.timeMap to the localDirectory under the file name "timeMapFile"
+     */
+    public synchronized void writeStatsToFile() {
+        try {
             FileOutputStream fos = new FileOutputStream(this.timeMapFile);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(this.timeMap);
+            oos.writeObject(this.startTime);
             oos.close();
 
-        }catch(Exception e){
-            System.out.println("Could not create file");
+        } catch(Exception e){
+            System.out.println("Could not write to file");
         }
 
     }
 
-    public void writeRequestsToFile() {
-        try{
+    /**
+     * Writes this.requestMap to the localDirectory under the file name "requestMapFile"
+     */
+    public synchronized void writeRequestsToFile() {
+        try {
             FileOutputStream fos = new FileOutputStream(this.requestMapFile);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(this.requestMap);
             oos.close();
 
-        }catch(Exception e){
-            System.out.println("Could not create file");
+        } catch(Exception e){
+            System.out.println("Could not write to file");
         }
 
     }
 
-    public void loadRequestsFromFile() {
-        try{
-            FileInputStream fis = new FileInputStream(this.requestMapFile);
+    /**
+     * Writes the start time of the wikiMediator to file
+     */
+    public synchronized void writeStartTimeToFile() {
+        try {
+            FileOutputStream fos = new FileOutputStream(this.startTimeFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(this.startTime);
+            oos.close();
+
+        } catch(Exception e){
+            System.out.println("Could not write to file");
+        }
+
+    }
+
+    /**
+     * Loads the start time of the wikiMediator
+     */
+
+    public synchronized void loadStartTimeFromFile() {
+        try {
+            FileInputStream fis = new FileInputStream(this.startTimeFile);
             ObjectInputStream ois = new ObjectInputStream(fis);
-            this.requestMap = (Map) ois.readObject();
+            this.startTime = (LocalDateTime) ois.readObject();
             ois.close();
 
-        }catch(Exception e){
+        } catch(Exception e){
             System.out.println("Could not load file");
         }
 
     }
 
-    public void loadTrendingFromFile() {
-        try{
+
+    /**
+     * Loads the requestMap from the localDirectory
+     */
+    public synchronized void loadRequestsFromFile() {
+        try {
+            FileInputStream fis = new FileInputStream(this.requestMapFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            this.requestMap = (Map) ois.readObject();
+            ois.close();
+
+        } catch(Exception e){
+            System.out.println("Could not load file");
+        }
+
+    }
+
+    /**
+     * Loads the timeMap from the localDirectory
+     */
+    public synchronized void loadStatsFromFile() {
+        try {
             FileInputStream fis = new FileInputStream(this.timeMapFile);
             ObjectInputStream ois = new ObjectInputStream(fis);
             this.timeMap = (Map) ois.readObject();
             ois.close();
 
-        }catch(Exception e){
+        } catch(Exception e){
             System.out.println("Could not load file");
         }
 
@@ -461,9 +597,11 @@ public class WikiMediator {
      * If start Page equals stop Page, returns a list of the single page
      */
     public List<String> getPath(String startPage, String stopPage) {
-        List<LocalDateTime> requestDates = this.requestMap.get("getPath");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("getPath", requestDates);
+        synchronized (this) {
+            List<LocalDateTime> requestDates = this.requestMap.get("getPath");
+            requestDates.add(LocalDateTime.now());
+            this.requestMap.replace("getPath", requestDates);
+        }
 
         LocalDateTime startTime = LocalDateTime.now();
         Queue<String> queue = new LinkedBlockingQueue<>();
@@ -478,8 +616,8 @@ public class WikiMediator {
             return returnList;
         }
 
-        // if we reach end of queue without finding the page, no possible path
-        while (!queue.isEmpty() && LocalDateTime.now().isBefore(startTime.plusMinutes(5))) {
+        // if we reach the timeout value without finding the page, assume no possible path
+        while (LocalDateTime.now().isBefore(startTime.plusMinutes(5)) && !pageFound) {
             String checkPage = queue.remove();
             List<String> linksOnPage = this.wiki.getLinksOnPage(checkPage);
             for (String page : linksOnPage) {
@@ -497,11 +635,6 @@ public class WikiMediator {
                     break;
                 }
 
-            }
-
-            //want to break out of loop if we have found destination
-            if (pageFound) {
-                break;
             }
         }
 
@@ -533,12 +666,14 @@ public class WikiMediator {
      * Returns a list of pages that match a certain criteria
      * @param query a string that defines the search
      * @return a list of pages that match the criteria query
-     * Returns an empty list if no such pages exist
+     * Returns an empty list if no such pages exist or query is invalid
      */
     public List<String> executeQuery(String query) {
-        List<LocalDateTime> requestDates = this.requestMap.get("executeQuery");
-        requestDates.add(LocalDateTime.now());
-        this.requestMap.replace("executeQuery", requestDates);
+        synchronized (this) {
+            List<LocalDateTime> requestDates = this.requestMap.get("executeQuery");
+            requestDates.add(LocalDateTime.now());
+            this.requestMap.replace("executeQuery", requestDates);
+        }
 
         List<String> queryList;
 
@@ -551,6 +686,13 @@ public class WikiMediator {
         return queryList;
     }
 
+
+    /**
+     * Parse parses the client's string in order to find the query
+     * @param query is not null
+     * @return a list of strings that match the query in wikipedia
+     * @throws InvalidQueryException if query is invalid according to grammar
+     */
     public List<String> parse (String query) throws InvalidQueryException {
         CharStream stream = new ANTLRInputStream(query);
         QueryLexer lexer = new QueryLexer(stream);
@@ -569,12 +711,17 @@ public class WikiMediator {
         QueryListener_QueryCreator listener = new QueryListener_QueryCreator();
         walker.walk(listener, tree);
 
-        List<String> queryList = listener.getQueries();
-        return queryList;
+        synchronized (this) {
+            List<String> queryList = listener.getQueries();
+            return queryList;
+        }
 
     }
 
-    private static class QueryListener_QueryCreator extends QueryBaseListener {
+    /**
+     * Class that allows us to generate the correct query list
+     */
+    private class QueryListener_QueryCreator extends QueryBaseListener {
         boolean categoryFlag = false;
         boolean titleFlag = false;
         boolean authorFlag = false;
@@ -587,6 +734,11 @@ public class WikiMediator {
         List<String> queryList = new ArrayList<>();
         Wiki wiki = new Wiki ("en.wikipedia.org");
 
+        /**
+         * Based on the condition, adds the appropriate argument to the results stack
+         * @param ctx the context tree that we walk thru, is not null
+         * @modifies results, adds correct arguments to our stack
+         */
         @Override
         public void exitSimpleCondition(QueryParser.SimpleConditionContext ctx) {
             if (ctx.CATEGORY() != null) {
@@ -633,6 +785,13 @@ public class WikiMediator {
             }
         }
 
+        /**
+         * Sorts results based on the and condition or the or condition
+         * @param ctx the context tree that we walk thru, is not null
+         * @modifies seenList adds appropriate arguments to this list if seen
+         * @modifies results takes off arguments from the stack
+         * @modifies queryList adds appropriate arguments to this list if necessary
+         */
         @Override
         public void exitCondition(QueryParser.ConditionContext ctx) {
 
@@ -645,22 +804,8 @@ public class WikiMediator {
                     if (andFlag) {
                         andFlag = false;
                         orFlag = true;
-                        while (!results.isEmpty() && !results.peek().equals("")) {
-                            String checkQuery = results.pop();
-                            if (checkAuthors) {
-                                if (wiki.exists(checkQuery) && wiki.getLastEditor(checkQuery).equals(author)) {
-                                    queryList.add(checkQuery);
-                                } else if (checkQuery.equals(author)) {
-                                    queryList.add(checkQuery);
-                                }
+                        setCheckAuthors();
 
-                            } else {
-                                seenList.add(checkQuery);
-                            }
-                        }
-                        if (!results.isEmpty() && results.peek().equals("")) {
-                            results.pop();
-                        }
 
                     }  else if (orFlag) {
                         orFlag = false;
@@ -686,19 +831,7 @@ public class WikiMediator {
 
                     } else if (andFlag) {
                         andFlag = false;
-                        while (!results.isEmpty() && !results.peek().equals("")) {
-                            String checkQuery = results.pop();
-                            if (checkAuthors) {
-                                if (wiki.exists(checkQuery) && wiki.getLastEditor(checkQuery).equals(author)) {
-                                    queryList.add(checkQuery);
-                                } else if (checkQuery.equals(author)) {
-                                    queryList.add(checkQuery);
-                                }
-
-                            } else {
-                                seenList.add(checkQuery);
-                            }
-                        }
+                        setCheckAuthors();
 
                     } else {
                         andFlag = true;
@@ -716,9 +849,15 @@ public class WikiMediator {
 
         }
 
+        /**
+         * Sorts the query list
+         * @param ctx the context tree that we walk thru, is not null
+         * @modifies queryList adds appropriate arguments when necessary
+         *           sorts the list if there is a sorted query
+         */
         @Override public void exitQuery(QueryParser.QueryContext ctx) {
 
-            if (orFlag && !andFlag) {
+            if (orFlag) {
                 while (!results.isEmpty()) {
                     if (!results.peek().equals("")) {
                         queryList.add(results.pop());
@@ -726,7 +865,7 @@ public class WikiMediator {
                         results.pop();
                     }
                 }
-            } else if (andFlag && !orFlag) {
+            } else if (andFlag) {
                 while (!results.isEmpty()) {
                     String checkQuery = results.pop();
                     if (!checkQuery.equals("")) {
@@ -739,9 +878,7 @@ public class WikiMediator {
                             }
                         } else {
                             if (seenList.contains(checkQuery)) {
-                                if (!results.peek().equals("")) {
-                                    queryList.add(checkQuery);
-                                }
+                                queryList.add(checkQuery);
                             }
                         }
                     }
@@ -765,6 +902,10 @@ public class WikiMediator {
             }
         }
 
+        /**
+         * Determines the request the user is looking for
+         * @param ctx the context tree that we walk thru, is not null
+         */
         @Override
         public void enterQuery(QueryParser.QueryContext ctx) {
             if (ctx.ITEM().getText().equals("author")) {
@@ -776,7 +917,39 @@ public class WikiMediator {
             }
         }
 
+        /**
+         *
+         * @return queryList, a list of string that match the users query
+         *                    returns an empty list if no suitable strings
+         */
         public List<String> getQueries() { return queryList; }
+
+
+        /**
+         * helper method for the exitCondition method
+         * @modifies results, takes appropriate arguments off the stack to sort
+         * @modifies queryList, adds appropriate arguments if they fit the query
+         * @modifies seenList, adds appropriate arguments if seen
+         */
+        private void setCheckAuthors () {
+            while (!results.isEmpty() && !results.peek().equals("")) {
+                String checkQuery = results.pop();
+                if (checkAuthors) {
+                    if (wiki.exists(checkQuery) && wiki.getLastEditor(checkQuery).equals(author)) {
+                        queryList.add(checkQuery);
+                    } else if (checkQuery.equals(author)) {
+                        queryList.add(checkQuery);
+                    }
+
+                } else {
+                    seenList.add(checkQuery);
+                }
+            }
+            if (!results.isEmpty() && results.peek().equals("")) {
+                results.pop();
+            }
+        }
+
     }
 
 }
