@@ -401,6 +401,7 @@ public class WikiMediator {
         List<LocalDateTime> requestDates = this.requestMap.get("getPath");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("getPath", requestDates);
+
         LocalDateTime startTime = LocalDateTime.now();
         Queue<String> queue = new LinkedBlockingQueue<>();
         Map<String, String> parentMap = new ConcurrentHashMap<>();
@@ -476,6 +477,7 @@ public class WikiMediator {
         List<LocalDateTime> requestDates = this.requestMap.get("executeQuery");
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("executeQuery", requestDates);
+
         CharStream stream = new ANTLRInputStream(query);
         QueryLexer lexer = new QueryLexer(stream);
         lexer.reportErrorsAsExceptions();
@@ -487,8 +489,6 @@ public class WikiMediator {
 
         // Generate the parse tree using the starter rule.
         ParseTree tree = parser.query();
-
-        System.err.println(tree.toStringTree(parser));
 
         ParseTreeWalker walker = new ParseTreeWalker();
         QueryListener_QueryCreator listener = new QueryListener_QueryCreator();
