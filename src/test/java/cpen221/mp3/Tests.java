@@ -166,6 +166,14 @@ public class Tests {
     }
 
     @Test
+    public void zeitgeistTest4() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+
+        assertEquals(answer, wm.zeitgeist(5));
+    }
+
+    @Test
     public void trendingTest1() {
         WikiMediator wm = new WikiMediator(new Cache());
         List<String> answer = new ArrayList<>();
@@ -249,6 +257,14 @@ public class Tests {
         wm.getPage("ultimate");
 
         assertEquals(answer, wm.trending(0));
+    }
+
+    @Test
+    public void trendingTest5() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+
+        assertEquals(answer, wm.trending(5));
     }
 
     @Test
