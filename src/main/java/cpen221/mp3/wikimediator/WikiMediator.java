@@ -10,6 +10,19 @@ import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Stack;
+
+import com.ibm.icu.impl.ICUNotifier;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
 
 import cpen221.mp3.cache.Cache;
 import cpen221.mp3.cache.CacheObject;
@@ -60,6 +73,9 @@ public class WikiMediator {
     private final String[] methodNames =
             new String[]{"simpleSearch", "getPage", "getConnectedPages",
                     "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
+
+    private final String timeMapFile = "local/timeMapFile";
+    private final String requestMapFile = "local/requestMapFile";
 
     /**
      * Constructs an instance of the WikiMediator.
@@ -244,6 +260,10 @@ public class WikiMediator {
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("zeitgeist", requestDates);
 
+        if (this.timeMap.keySet().isEmpty()) {
+            return new ArrayList<>();
+        }
+
         List<String> mostCommon = new ArrayList<>();
         int maxOccurrences;
         int count = 0;
@@ -283,6 +303,10 @@ public class WikiMediator {
         List<String> trendingList = new ArrayList<>();
         LocalDateTime currentTime = LocalDateTime.now();
         Map<String, Integer> frequencyList = new ConcurrentHashMap<>();
+
+        if (this.timeMap.keySet().isEmpty()) {
+            return new ArrayList<>();
+        }
 
         for (String request : this.timeMap.keySet()) {
             List<LocalDateTime> requestList = this.timeMap.get(request);
@@ -366,19 +390,65 @@ public class WikiMediator {
     }
 
     /* Task 2 */
+    /* Source: https://stackoverflow.com/questions/4738162/
+    java-writing-reading-a-map-from-disk?fbclid=IwAR2k5WIuXOANDQXbHI56WU9wEb3wrR0_uCy6AWj9026Pzsn_D8GK1DLyEx0
+    */
     /**
-     * Writes this.timeMap and this.requestMap to the local directory under the file ".keep"
+     * Writes this.timeMap and this.requestMap to the local directory
      */
-    private void writeStatsToFile() {
+
+    public void writeTrendingToFile() {
+        try{
+            FileOutputStream fos = new FileOutputStream(this.timeMapFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(this.timeMap);
+            oos.close();
+
+        }catch(Exception e){
+            System.out.println("Could not create file");
+        }
 
     }
 
-    /**
-     * Writes this.cache to the local directory under the file ".Cache"
-     */
-    private void writeCacheToFile() {
+    public void writeRequestsToFile() {
+        try{
+            FileOutputStream fos = new FileOutputStream(this.requestMapFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(this.requestMap);
+            oos.close();
+
+        }catch(Exception e){
+            System.out.println("Could not create file");
+        }
 
     }
+
+    public void loadRequestsFromFile() {
+        try{
+            FileInputStream fis = new FileInputStream(this.requestMapFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            this.requestMap = (Map) ois.readObject();
+            ois.close();
+
+        }catch(Exception e){
+            System.out.println("Could not load file");
+        }
+
+    }
+
+    public void loadTrendingFromFile() {
+        try{
+            FileInputStream fis = new FileInputStream(this.timeMapFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            this.timeMap = (Map) ois.readObject();
+            ois.close();
+
+        }catch(Exception e){
+            System.out.println("Could not load file");
+        }
+
+    }
+
 
     /* Task 3 */
 
@@ -387,17 +457,29 @@ public class WikiMediator {
      * @param startPage a page on en.wikipedia.org
      * @param stopPage a page on en.wikipedia.org
      * @return A list of strings on the path between the start Page and stop Page
-     * Returns an empty list of strings if no such path exists
+     * Returns an empty list of strings if no such path exists or getPath exceeds 5 minutes
+     * If start Page equals stop Page, returns a list of the single page
      */
     public List<String> getPath(String startPage, String stopPage) {
+        List<LocalDateTime> requestDates = this.requestMap.get("getPath");
+        requestDates.add(LocalDateTime.now());
+        this.requestMap.replace("getPath", requestDates);
+
+        LocalDateTime startTime = LocalDateTime.now();
         Queue<String> queue = new LinkedBlockingQueue<>();
         Map<String, String> parentMap = new ConcurrentHashMap<>();
         parentMap.put(startPage, startPage);
         queue.add(startPage);
         boolean pageFound = false;
 
+        if (startPage.equals(stopPage)) {
+            List<String> returnList = new ArrayList<>();
+            returnList.add(startPage);
+            return returnList;
+        }
+
         // if we reach end of queue without finding the page, no possible path
-        while (!queue.isEmpty()) {
+        while (!queue.isEmpty() && LocalDateTime.now().isBefore(startTime.plusMinutes(5))) {
             String checkPage = queue.remove();
             List<String> linksOnPage = this.wiki.getLinksOnPage(checkPage);
             for (String page : linksOnPage) {
@@ -421,7 +503,6 @@ public class WikiMediator {
             if (pageFound) {
                 break;
             }
-
         }
 
         // if we completely exhaust the queue, then stop Page is either invalid or an orphan page
@@ -439,7 +520,7 @@ public class WikiMediator {
             }
 
             List<String> pagePath = new ArrayList<>();
-            for (int i = pathList.size() - 1; i >= 0; i++) {
+            for (int i = pathList.size() - 1; i >= 0; i--) {
                 pagePath.add(pathList.get(i));
 
             }
@@ -455,7 +536,247 @@ public class WikiMediator {
      * Returns an empty list if no such pages exist
      */
     public List<String> executeQuery(String query) {
-        return null;
+        List<LocalDateTime> requestDates = this.requestMap.get("executeQuery");
+        requestDates.add(LocalDateTime.now());
+        this.requestMap.replace("executeQuery", requestDates);
+
+        List<String> queryList;
+
+        try {
+            queryList = this.parse(query);
+        } catch(InvalidQueryException e) {
+            System.out.println("Error parsing query.");
+            return new ArrayList<>();
+        }
+        return queryList;
+    }
+
+    public List<String> parse (String query) throws InvalidQueryException {
+        CharStream stream = new ANTLRInputStream(query);
+        QueryLexer lexer = new QueryLexer(stream);
+        lexer.reportErrorsAsExceptions();
+        TokenStream tokens = new CommonTokenStream(lexer);
+
+        // Feed the tokens into the parser.
+        QueryParser parser = new QueryParser(tokens);
+        parser.reportErrorsAsExceptions();
+
+
+        // Generate the parse tree using the starter rule.
+        ParseTree tree = parser.query();
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        QueryListener_QueryCreator listener = new QueryListener_QueryCreator();
+        walker.walk(listener, tree);
+
+        List<String> queryList = listener.getQueries();
+        return queryList;
+
+    }
+
+    private static class QueryListener_QueryCreator extends QueryBaseListener {
+        boolean categoryFlag = false;
+        boolean titleFlag = false;
+        boolean authorFlag = false;
+        boolean checkAuthors = false;
+        boolean andFlag = false;
+        boolean orFlag = false;
+        String author = "";
+        Stack<String> results = new Stack<>();
+        List<String> seenList = new ArrayList<>();
+        List<String> queryList = new ArrayList<>();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+
+        @Override
+        public void exitSimpleCondition(QueryParser.SimpleConditionContext ctx) {
+            if (ctx.CATEGORY() != null) {
+                int length = ctx.STRING().getText().length();
+                String category = "Category:" + ctx.STRING().getText().substring(1, length - 1);
+
+                if (authorFlag) {
+                    for (String c : wiki.getCategoryMembers(category)) {
+                        String editor = wiki.getLastEditor(c);
+                        if (!results.contains(editor)) {
+                            results.push(editor);
+                        }
+                    }
+                } else if (titleFlag) {
+                    for (String t : wiki.getCategoryMembers(category)) {
+                        results.push(t);
+                    }
+                } else {
+                    for (String c : wiki.getCategoriesOnPage(category)) {
+                        results.push(c);
+                    }
+                }
+                results.push("");
+
+            } else if (ctx.TITLE() != null) {
+                int length = ctx.STRING().getText().length();
+                String pageTitle = ctx.STRING().getText().substring(1, length - 1);
+
+                if (authorFlag) {
+                    results.push(wiki.getLastEditor(pageTitle));
+                } else if (categoryFlag) {
+                    for (String c : wiki.getCategoriesOnPage(pageTitle)) {
+                        results.push(c);
+                    }
+                } else {
+                    results.push(pageTitle);
+                }
+                results.push("");
+
+            } else {
+                int length = ctx.STRING().getText().length();
+                author = ctx.STRING().getText().substring(1, length - 1);
+                checkAuthors = true;
+            }
+        }
+
+        @Override
+        public void exitCondition(QueryParser.ConditionContext ctx) {
+
+            if (ctx.RPAREN() != null) {
+                if (!results.isEmpty() && results.peek().equals("")) {
+                    results.pop();
+                }
+
+                if (ctx.OR() != null) {
+                    if (andFlag) {
+                        andFlag = false;
+                        orFlag = true;
+                        while (!results.isEmpty() && !results.peek().equals("")) {
+                            String checkQuery = results.pop();
+                            if (checkAuthors) {
+                                if (wiki.exists(checkQuery) && wiki.getLastEditor(checkQuery).equals(author)) {
+                                    queryList.add(checkQuery);
+                                } else if (checkQuery.equals(author)) {
+                                    queryList.add(checkQuery);
+                                }
+
+                            } else {
+                                seenList.add(checkQuery);
+                            }
+                        }
+                        if (!results.isEmpty() && results.peek().equals("")) {
+                            results.pop();
+                        }
+
+                    }  else if (orFlag) {
+                        orFlag = false;
+                        while (!results.isEmpty() && !results.peek().equals("")) {
+                            queryList.add(results.pop());
+                        }
+
+                    } else {
+                        orFlag = true;
+                    }
+                } else {
+                    if (orFlag) {
+                        orFlag = false;
+                        andFlag = true;
+                        if (!checkAuthors) {
+                            while (!results.isEmpty() && !results.peek().equals("")) {
+                                seenList.add(results.pop());
+                            }
+                            if (!results.isEmpty() && results.peek().equals("")) {
+                                results.pop();
+                            }
+                        }
+
+                    } else if (andFlag) {
+                        andFlag = false;
+                        while (!results.isEmpty() && !results.peek().equals("")) {
+                            String checkQuery = results.pop();
+                            if (checkAuthors) {
+                                if (wiki.exists(checkQuery) && wiki.getLastEditor(checkQuery).equals(author)) {
+                                    queryList.add(checkQuery);
+                                } else if (checkQuery.equals(author)) {
+                                    queryList.add(checkQuery);
+                                }
+
+                            } else {
+                                seenList.add(checkQuery);
+                            }
+                        }
+
+                    } else {
+                        andFlag = true;
+                        while (!results.isEmpty() && !results.peek().equals("")) {
+                            if (!checkAuthors) {
+                                seenList.add(results.pop());
+                            } else {
+                                seenList.add(author);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+        @Override public void exitQuery(QueryParser.QueryContext ctx) {
+
+            if (orFlag && !andFlag) {
+                while (!results.isEmpty()) {
+                    if (!results.peek().equals("")) {
+                        queryList.add(results.pop());
+                    } else {
+                        results.pop();
+                    }
+                }
+            } else if (andFlag && !orFlag) {
+                while (!results.isEmpty()) {
+                    String checkQuery = results.pop();
+                    if (!checkQuery.equals("")) {
+                        if (checkAuthors) {
+                            String editor = wiki.getLastEditor(checkQuery);
+                            if (wiki.exists(checkQuery) && (seenList.contains(editor) || author.equals(editor))) {
+                                queryList.add(checkQuery);
+                            } else if (checkQuery.equals(author)) {
+                                queryList.add(checkQuery);
+                            }
+                        } else {
+                            if (seenList.contains(checkQuery)) {
+                                if (!results.peek().equals("")) {
+                                    queryList.add(checkQuery);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                while (!results.isEmpty()) {
+                    if (!results.peek().equals("")) {
+                        queryList.add(results.pop());
+                    } else {
+                        results.pop();
+                    }
+                }
+            }
+
+
+            if (ctx.SORTED() != null) {
+                Collections.sort(queryList);
+                if (ctx.SORTED().getText().equals("desc")) {
+                    Collections.reverse(queryList);
+                }
+            }
+        }
+
+        @Override
+        public void enterQuery(QueryParser.QueryContext ctx) {
+            if (ctx.ITEM().getText().equals("author")) {
+                authorFlag = true;
+            } else if (ctx.ITEM().getText().equals("page")) {
+                titleFlag = true;
+            } else {
+                categoryFlag = true;
+            }
+        }
+
+        public List<String> getQueries() { return queryList; }
     }
 
 }

@@ -1,6 +1,7 @@
 package cpen221.mp3;
 
 import cpen221.mp3.cache.NotFoundException;
+import cpen221.mp3.wikimediator.InvalidQueryException;
 import cpen221.mp3.wikimediator.WikiMediator;
 import cpen221.mp3.cache.Cache;
 import cpen221.mp3.cache.CacheObject;
@@ -13,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.io.File;
 
 import static org.junit.Assert.*;
 
@@ -563,6 +565,94 @@ public class Tests {
     }
 
     @Test
+    public void timeMapTest1() {
+        WikiMediator wm = new WikiMediator(new Cache());
+        List<String> answer = new ArrayList<>();
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("ultimate");
+        wm.writeTrendingToFile();
+
+        WikiMediator wm1 = new WikiMediator(new Cache());
+        wm1.loadTrendingFromFile();
+        answer.add("Obama");
+        answer.add("hockey");
+        answer.add("soccer");
+
+        assertEquals(answer, wm1.trending(3));
+    }
+
+    @Test
+    public void timeMapTest2() {
+        WikiMediator wm = new WikiMediator(new Cache());
+        List<String> answer = new ArrayList<>();
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("ultimate");
+
+        File file = new File ("local/timeMapFile");
+        file.delete();
+        WikiMediator wm1 = new WikiMediator(new Cache());
+        wm1.loadTrendingFromFile();
+
+        assertEquals(answer, wm1.trending(3));
+    }
+
+    @Test
+    public void requestMapTest1() {
+        WikiMediator wm = new WikiMediator(new Cache());
+
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("ultimate");
+        wm.getPage("hockey");
+        wm.simpleSearch("soccer", 3);
+        wm.writeRequestsToFile();
+
+        WikiMediator wm1 = new WikiMediator(new Cache());
+        wm1.loadRequestsFromFile();
+
+        assertEquals(11, wm1.peakLoad30s());
+    }
+
+    @Test
+    public void requestMapTest2() {
+        WikiMediator wm = new WikiMediator(new Cache());
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("ultimate");
+        wm.getPage("hockey");
+        wm.simpleSearch("soccer", 3);
+
+        File file = new File ("local/requestMapFile");
+        file.delete();
+        WikiMediator wm1 = new WikiMediator(new Cache());
+        wm1.loadRequestsFromFile();
+
+        assertEquals(1, wm1.peakLoad30s());
+    }
+
+    @Test
     public void getPathTest1() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
@@ -589,21 +679,256 @@ public class Tests {
     public void getPathTest3() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        answer.add("Assassination of Abraham Lincoln");
-        answer.add("West Virginia");
-        answer.add("Potassium Nitrate");
-        answer.add("Korean brining salt");
+        answer.add("Galojan");
+        answer.add("Anna-Maria Galojan");
 
-        assertEquals(answer, wm.getPath("Assassination of Abraham Lincoln", "Korean brining salt"));
+        assertEquals(answer, wm.getPath("Galojan", "Anna-Maria Galojan"));
     }
 
     @Test
     public void getPathTest4() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        answer.add("Galojan");
-        answer.add("Anna-Maria Galojan");
+        answer.add("Hockey");
 
-        assertEquals(answer, wm.getPath("Galojan", "Anna-Maria Galojan"));
+        assertEquals(answer, wm.getPath("Hockey", "Hockey"));
     }
+
+    @Test
+    public void getPathTest5(){
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+
+        assertEquals(answer, wm.getPath("Elon Musk", "Sidney Crosby"));
+    }
+
+    @Test
+    public void executeQueryTest1() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        answer = wiki.getCategoryMembers("Category: Illinois state senators");
+        Collections.reverse(answer);
+        assertEquals(answer, wm.executeQuery("get page where category is 'Illinois state senators'"));
+    }
+
+    @Test
+    public void executeQueryTest2() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        assertEquals(answer, wm.executeQuery("Invalid Request"));
+    }
+
+    @Test
+    public void executeQueryTest3() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        String query = "get author where (title is 'Barack Obama' or category is 'Mathematical optimization in business')";
+        answer.add(wiki.getLastEditor("Barack Obama"));
+        for (String s : wiki.getCategoryMembers("Category:Mathematical optimization in business")) {
+            String editor = wiki.getLastEditor(s);
+            if (!answer.contains(editor)) {
+                answer.add(editor);
+            }
+        }
+
+        assertEquals(answer.size(), wm.executeQuery(query).size());
+    }
+
+    @Test
+    public void executeQueryTest4() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get page where (author is 'AndrewOne' and author is 'Sylas')";
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest5() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        String query = "get category where (author is 'CLCStudent' and (title is 'Barack Obama' or title is 'Naomi Klein'))";
+
+        for (String s : wiki.getCategoriesOnPage("Barack Obama")) {
+            if (wiki.getLastEditor(s).equals("CLCStudent")) {
+                answer.add(s);
+            }
+        }
+
+        for (String s : wiki.getCategoriesOnPage("Naomi Klien")) {
+            if (wiki.getLastEditor(s).equals("CLCStudent")) {
+                answer.add(s);
+            }
+        }
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest6() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get page where (author is 'Mediaexpert3' and title is 'Barack Obama')";
+        answer.add("Barack Obama");
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest7() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get page where (category is 'Illinois state senators' and category is 'HuffPost writers and columnists')";
+        answer.add("Barack Obama");
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest8() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        String query = "get author where (category is 'HuffPost writers and columnists' and title is 'Barack Obama')";
+        answer.add(wiki.getLastEditor("Barack Obama"));
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest9() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get page where title is 'Barack Obama'";
+        answer.add("Barack Obama");
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest10() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get page where (author is 'Mediaexpert3' and (title is 'Barack Obama' or title is 'Hockey'))";
+        answer.add("Barack Obama");
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest11() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get category where (author is 'Mediaexpert3' and (title is 'Barack Obama' or title is 'Hockey'))";
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest12() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get author where (author is 'Mediaexpert3' and (title is 'Barack Obama' or title is 'Hockey'))";
+        answer.add("Mediaexpert3");
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest13() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        String query = "get category where category is 'Illinois state senators'";
+        answer.addAll(wiki.getCategoriesOnPage("Category:Illinois state senators"));
+        Collections.reverse(answer);
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest14() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        String query = "get page where category is 'Illinois state senators' asc";
+        for (String s : wiki.getCategoryMembers("Category:Illinois state senators")) {
+            answer.add(s);
+        }
+
+        Collections.sort(answer);
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest15() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        String query = "get page where category is 'Illinois state senators' desc";
+        for (String s : wiki.getCategoryMembers("Category:Illinois state senators")) {
+            answer.add(s);
+        }
+
+        Collections.sort(answer);
+        Collections.reverse(answer);
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest16() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        String query = "get page where (category is 'HuffPost writers and columnists' or (title is 'hockey' and author is 'Smjg'))";
+        answer.addAll(wiki.getCategoryMembers("Category:HuffPost writers and columnists"));
+        answer.add("hockey");
+        Collections.reverse(answer);
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest17() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get page where (title is 'Ultimate' or (title is 'Hockey' or author is 'Smjg'))";
+        answer.add("Hockey");
+        answer.add("Ultimate");
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test
+    public void executeQueryTest18() {
+        WikiMediator wm = new WikiMediator();
+        Wiki wiki = new Wiki ("en.wikipedia.org");
+        List<String> answer = new ArrayList<>();
+        String query = "get author where (title is 'Hockey' and (title is 'Hockey' and title is 'Soccer'))";
+        answer.add(wiki.getLastEditor("Hockey"));
+
+        assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test (expected = InvalidQueryException.class)
+    public void parseTest1() {
+        WikiMediator wm = new WikiMediator();
+        wm.parse("Invalid Request");
+    }
+
+    @Test
+    public void parseTest2() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get page where title is 'Hockey'";
+        answer.add("Hockey");
+
+        assertEquals(answer, wm.parse(query));
+    }
+
 }
