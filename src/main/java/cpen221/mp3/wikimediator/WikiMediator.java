@@ -490,14 +490,14 @@ public class WikiMediator {
      * Writes this.timeMap to the localDirectory under the file name "timeMapFile"
      */
     public synchronized void writeStatsToFile() {
-        try{
+        try {
             FileOutputStream fos = new FileOutputStream(this.timeMapFile);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(this.timeMap);
             oos.writeObject(this.startTime);
             oos.close();
 
-        }catch(Exception e){
+        } catch(Exception e){
             System.out.println("Could not write to file");
         }
 
@@ -507,13 +507,13 @@ public class WikiMediator {
      * Writes this.requestMap to the localDirectory under the file name "requestMapFile"
      */
     public synchronized void writeRequestsToFile() {
-        try{
+        try {
             FileOutputStream fos = new FileOutputStream(this.requestMapFile);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(this.requestMap);
             oos.close();
 
-        }catch(Exception e){
+        } catch(Exception e){
             System.out.println("Could not write to file");
         }
 
@@ -523,30 +523,30 @@ public class WikiMediator {
      * Writes the start time of the wikiMediator to file
      */
     public synchronized void writeStartTimeToFile() {
-        try{
+        try {
             FileOutputStream fos = new FileOutputStream(this.startTimeFile);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(this.startTime);
             oos.close();
 
-        }catch(Exception e){
+        } catch(Exception e){
             System.out.println("Could not write to file");
         }
 
     }
 
     /**
-     * Loads the start time of the wikiMedatior
+     * Loads the start time of the wikiMediator
      */
 
     public synchronized void loadStartTimeFromFile() {
-        try{
+        try {
             FileInputStream fis = new FileInputStream(this.startTimeFile);
             ObjectInputStream ois = new ObjectInputStream(fis);
             this.startTime = (LocalDateTime) ois.readObject();
             ois.close();
 
-        }catch(Exception e){
+        } catch(Exception e){
             System.out.println("Could not load file");
         }
 
@@ -557,13 +557,13 @@ public class WikiMediator {
      * Loads the requestMap from the localDirectory
      */
     public synchronized void loadRequestsFromFile() {
-        try{
+        try {
             FileInputStream fis = new FileInputStream(this.requestMapFile);
             ObjectInputStream ois = new ObjectInputStream(fis);
             this.requestMap = (Map) ois.readObject();
             ois.close();
 
-        }catch(Exception e){
+        } catch(Exception e){
             System.out.println("Could not load file");
         }
 
@@ -573,13 +573,13 @@ public class WikiMediator {
      * Loads the timeMap from the localDirectory
      */
     public synchronized void loadStatsFromFile() {
-        try{
+        try {
             FileInputStream fis = new FileInputStream(this.timeMapFile);
             ObjectInputStream ois = new ObjectInputStream(fis);
             this.timeMap = (Map) ois.readObject();
             ois.close();
 
-        }catch(Exception e){
+        } catch(Exception e){
             System.out.println("Could not load file");
         }
 
