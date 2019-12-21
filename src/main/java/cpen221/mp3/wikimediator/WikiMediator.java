@@ -407,7 +407,7 @@ public class WikiMediator {
         parentMap.put(startPage, startPage);
         queue.add(startPage);
         boolean pageFound = false;
-        
+
         if (startPage.equals(stopPage)) {
             List<String> returnList = new ArrayList<>();
             returnList.add(startPage);
