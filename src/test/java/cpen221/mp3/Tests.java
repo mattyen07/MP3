@@ -1,6 +1,7 @@
 package cpen221.mp3;
 
 import cpen221.mp3.cache.NotFoundException;
+import cpen221.mp3.wikimediator.InvalidQueryException;
 import cpen221.mp3.wikimediator.WikiMediator;
 import cpen221.mp3.cache.Cache;
 import cpen221.mp3.cache.CacheObject;
@@ -13,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.io.File;
 
 import static org.junit.Assert.*;
 
@@ -563,6 +565,94 @@ public class Tests {
     }
 
     @Test
+    public void timeMapTest1() {
+        WikiMediator wm = new WikiMediator(new Cache());
+        List<String> answer = new ArrayList<>();
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("ultimate");
+        wm.writeTrendingToFile();
+
+        WikiMediator wm1 = new WikiMediator(new Cache());
+        wm1.loadTrendingFromFile();
+        answer.add("Obama");
+        answer.add("hockey");
+        answer.add("soccer");
+
+        assertEquals(answer, wm1.trending(3));
+    }
+
+    @Test
+    public void timeMapTest2() {
+        WikiMediator wm = new WikiMediator(new Cache());
+        List<String> answer = new ArrayList<>();
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("ultimate");
+
+        File file = new File ("local/timeMapFile");
+        file.delete();
+        WikiMediator wm1 = new WikiMediator(new Cache());
+        wm1.loadTrendingFromFile();
+
+        assertEquals(answer, wm1.trending(3));
+    }
+
+    @Test
+    public void requestMapTest1() {
+        WikiMediator wm = new WikiMediator(new Cache());
+
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("ultimate");
+        wm.getPage("hockey");
+        wm.simpleSearch("soccer", 3);
+        wm.writeRequestsToFile();
+
+        WikiMediator wm1 = new WikiMediator(new Cache());
+        wm1.loadRequestsFromFile();
+
+        assertEquals(11, wm1.peakLoad30s());
+    }
+
+    @Test
+    public void requestMapTest2() {
+        WikiMediator wm = new WikiMediator(new Cache());
+        wm.simpleSearch("Obama", 1);
+        wm.simpleSearch("Obama", 2);
+        wm.simpleSearch("Obama", 3);
+        wm.getPage("hockey");
+        wm.getPage("hockey");
+        wm.getPage("soccer");
+        wm.getPage("soccer");
+        wm.getPage("ultimate");
+        wm.getPage("hockey");
+        wm.simpleSearch("soccer", 3);
+
+        File file = new File ("local/requestMapFile");
+        file.delete();
+        WikiMediator wm1 = new WikiMediator(new Cache());
+        wm1.loadRequestsFromFile();
+
+        assertEquals(1, wm1.peakLoad30s());
+    }
+
+    @Test
     public void getPathTest1() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
@@ -626,8 +716,6 @@ public class Tests {
     public void executeQueryTest2() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        answer.add("Hockey");
-
         assertEquals(answer, wm.executeQuery("Invalid Request"));
     }
 
@@ -825,6 +913,22 @@ public class Tests {
         answer.add(wiki.getLastEditor("Hockey"));
 
         assertEquals(answer, wm.executeQuery(query));
+    }
+
+    @Test (expected = InvalidQueryException.class)
+    public void parseTest1() {
+        WikiMediator wm = new WikiMediator();
+        wm.parse("Invalid Request");
+    }
+
+    @Test
+    public void parseTest2() {
+        WikiMediator wm = new WikiMediator();
+        List<String> answer = new ArrayList<>();
+        String query = "get page where title is 'Hockey'";
+        answer.add("Hockey");
+
+        assertEquals(answer, wm.parse(query));
     }
 
 }

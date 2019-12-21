@@ -10,19 +10,18 @@ package cpen221.mp3.wikimediator;
 @members {
     // This method makes the lexer or parser stop running if it encounters
     // invalid input and throw a RuntimeException.
-    public void reportErrorsAsExceptions() {
-        //removeErrorListeners();
+    public void reportErrorsAsExceptions() throws InvalidQueryException {
         addErrorListener(new ExceptionThrowingErrorListener());
     }
 
-    private static class ExceptionThrowingErrorListener
+    public class ExceptionThrowingErrorListener
                                               extends BaseErrorListener {
         @Override
         public void syntaxError(Recognizer<?, ?> recognizer,
                 Object offendingSymbol, int line, int charPositionInLine,
-                String msg, RecognitionException e) {
+                String msg, RecognitionException e) throws ParseCancellationException {
 
-            throw new RuntimeException(msg);
+            throw new InvalidQueryException();
         }
     }
 }

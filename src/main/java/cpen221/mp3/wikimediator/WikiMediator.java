@@ -11,6 +11,8 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Stack;
+
+import com.ibm.icu.impl.ICUNotifier;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -72,8 +74,8 @@ public class WikiMediator {
             new String[]{"simpleSearch", "getPage", "getConnectedPages",
                     "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
 
-    private final String timeMapFile = "local/timeMap-Server";
-    private final String requestMapFile = "local/requestMap-Server";
+    private final String timeMapFile = "local/timeMapFile";
+    private final String requestMapFile = "local/requestMapFile";
 
     /**
      * Constructs an instance of the WikiMediator.
@@ -258,6 +260,10 @@ public class WikiMediator {
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("zeitgeist", requestDates);
 
+        if (this.timeMap.keySet().isEmpty()) {
+            return new ArrayList<>();
+        }
+
         List<String> mostCommon = new ArrayList<>();
         int maxOccurrences;
         int count = 0;
@@ -297,6 +303,10 @@ public class WikiMediator {
         List<String> trendingList = new ArrayList<>();
         LocalDateTime currentTime = LocalDateTime.now();
         Map<String, Integer> frequencyList = new ConcurrentHashMap<>();
+
+        if (this.timeMap.keySet().isEmpty()) {
+            return new ArrayList<>();
+        }
 
         for (String request : this.timeMap.keySet()) {
             List<LocalDateTime> requestList = this.timeMap.get(request);
@@ -380,10 +390,13 @@ public class WikiMediator {
     }
 
     /* Task 2 */
+    /* Source: https://stackoverflow.com/questions/4738162/
+    java-writing-reading-a-map-from-disk?fbclid=IwAR2k5WIuXOANDQXbHI56WU9wEb3wrR0_uCy6AWj9026Pzsn_D8GK1DLyEx0
+    */
     /**
-     * Writes this.timeMap and this.requestMap to the local directory under the file ".history"
+     * Writes this.timeMap and this.requestMap to the local directory
      */
-    
+
     public void writeTrendingToFile() {
         try{
             FileOutputStream fos = new FileOutputStream(this.timeMapFile);
@@ -418,7 +431,7 @@ public class WikiMediator {
             ois.close();
 
         }catch(Exception e){
-            System.out.println("Could not create file");
+            System.out.println("Could not load file");
         }
 
     }
@@ -431,7 +444,7 @@ public class WikiMediator {
             ois.close();
 
         }catch(Exception e){
-            System.out.println("Could not create file");
+            System.out.println("Could not load file");
         }
 
     }
@@ -527,6 +540,18 @@ public class WikiMediator {
         requestDates.add(LocalDateTime.now());
         this.requestMap.replace("executeQuery", requestDates);
 
+        List<String> queryList;
+
+        try {
+            queryList = this.parse(query);
+        } catch(InvalidQueryException e) {
+            System.out.println("Error parsing query.");
+            return new ArrayList<>();
+        }
+        return queryList;
+    }
+
+    public List<String> parse (String query) throws InvalidQueryException {
         CharStream stream = new ANTLRInputStream(query);
         QueryLexer lexer = new QueryLexer(stream);
         lexer.reportErrorsAsExceptions();
@@ -535,6 +560,7 @@ public class WikiMediator {
         // Feed the tokens into the parser.
         QueryParser parser = new QueryParser(tokens);
         parser.reportErrorsAsExceptions();
+
 
         // Generate the parse tree using the starter rule.
         ParseTree tree = parser.query();
@@ -545,6 +571,7 @@ public class WikiMediator {
 
         List<String> queryList = listener.getQueries();
         return queryList;
+
     }
 
     private static class QueryListener_QueryCreator extends QueryBaseListener {
