@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.*;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 
 import com.google.gson.*;
 
@@ -35,9 +36,9 @@ public class WikiMediatorClient {
      * @param request is a correctly formatted JsonObject
      * @throws IOException if network or server failure
      */
-    public void sendRequest(JsonObject request) throws IOException {
-        out.print(request);
-        out.flush(); // important! make sure x actually gets sent
+    public void sendRequest(String request) throws IOException {
+        out.print(request + "\r\n");
+        out.flush();
     }
 
     /**
@@ -49,7 +50,7 @@ public class WikiMediatorClient {
     public JsonObject getReply() throws IOException {
         JsonParser parser = new JsonParser();
         Gson gson = new Gson();
-        JsonObject reply = parser.parse(in).getAsJsonObject();
+        JsonObject reply = parser.parse(in.readLine()).getAsJsonObject();
 
         return reply;
     }
@@ -79,18 +80,17 @@ public class WikiMediatorClient {
             //put junk in here!
 
             String id = "yeet";
-            String type = "simpleSearch";
-            String query = "Barack Obama";
-            String limit = "12";
+            String type = "getPage";
+            String pageTitle = "Barack Obama";
 
             JsonObject request = new JsonObject();
             request.addProperty("id", id);
             request.addProperty("type", type);
-            request.addProperty("query", query);
-            request.addProperty("limit", limit);
+            request.addProperty("pageTitle", pageTitle);
 
-            client.sendRequest(request);
-            System.out.println("request sent!:" + request);
+
+            client.sendRequest(request.toString());
+            System.out.println(request.toString());
 
             //JsonObject reply = client.getReply();
 
