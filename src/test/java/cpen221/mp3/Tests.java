@@ -1130,6 +1130,95 @@ public class Tests {
         }
     }
 
+    //tests getPath
+    @Test
+    public void serverTest7() {
+        try {
+            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+            String id = "test2";
+            String type = "getPath";
+
+            JsonObject request = new JsonObject();
+            request.addProperty("id", id);
+            request.addProperty("type", type);
+            request.addProperty("startPage", "Hockey");
+            request.addProperty("stopPage", "Hockey");
+
+
+            client.sendRequest(request.toString());
+            System.err.println(request.toString());
+
+            String reply = client.getReply();
+
+            System.err.println("Reply!:" + reply);
+
+            client.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    //tests getPath
+    @Test
+    public void serverTest8() {
+        try {
+            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+            String id = "test2";
+            String type = "getPath";
+
+            JsonObject request = new JsonObject();
+            request.addProperty("id", id);
+            request.addProperty("type", type);
+            request.addProperty("startPage", "Hockey");
+            request.addProperty("stopPage", "Hockey");
+
+
+            client.sendRequest(request.toString());
+            System.err.println(request.toString());
+
+            String reply = client.getReply();
+
+            System.err.println("Reply!:" + reply);
+
+            client.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    //tests executeQuery
+    @Test
+    public void serverTest9() {
+        try {
+            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+            String id = "test2";
+            String type = "executeQuery";
+
+            JsonObject request = new JsonObject();
+            request.addProperty("id", id);
+            request.addProperty("type", type);
+            request.addProperty("query", "get page where category is 'Illinois state senators'");
+
+
+            client.sendRequest(request.toString());
+            System.err.println(request.toString());
+
+            String reply = client.getReply();
+
+            System.err.println("Reply!:" + reply);
+
+            client.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+
+
+
 
 
 }

@@ -62,6 +62,7 @@ public class WikiMediatorServer {
             if(this.numCurrentRequests < this.maxRequests) {
                 synchronized (this) {
                     this.numCurrentRequests++;
+                    System.err.println("Current Requests: " + this.numCurrentRequests);
                 }
                 // create a new thread to handle that client
                 Thread handler = new Thread(new Runnable() {
@@ -181,13 +182,14 @@ public class WikiMediatorServer {
             in.close();
             synchronized (this) {
                 this.numCurrentRequests--;
+                System.err.println("Current Requests: " + this.numCurrentRequests);
             }
         }
     }
 
 
     /**
-     * Helper method to get the correct JSON formatted reply from WikiMediator based on the request.
+     * Helper method to get the correct Json formatted reply from WikiMediator based on the request.
      * @param request is a correctly formatted JsonObject for the server.
      * @return correctly formatted reply containing the results of the wikimediator.
      */
@@ -284,41 +286,5 @@ public class WikiMediatorServer {
             e.printStackTrace();
         }
     }
-
-    //private final String[] methodNames =
-    //            new String[]{"simpleSearch", "getPage", "getConnectedPages",
-    //                    "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
-
-    /**
-     * Handle one client connection. Returns when client disconnects.
-     * Parses the JSON request of client such that we can request the appropriate
-     * method from the WikiMediator instance
-     * @param socket  socket where client is connected
-     * @throws IOException if connection encounters an error
-     */
-    //https://stackoverflow.com/questions/26284419/java-read-json-input-stream
-    /*private void handle(Socket socket) throws IOException {
-        InputStreamReader inputStream = new InputStreamReader(socket.getInputStream());
-        BufferedReader br = new BufferedReader(inputStream);
-        JsonParser parser = new JsonParser();
-        Gson gson = new Gson();
-
-        JsonElement json = parser.parse(br);
-
-        if (json.isJsonArray()) {
-            JsonArray requestArray = json.getAsJsonArray();
-            for (int i = 0; i < requestArray.size(); i++) {
-                JsonObject request = requestArray.get(i).getAsJsonObject();
-                String id = request.get("id").getAsString();
-                String type = request.get("type").getAsString();
-
-            }
-
-        }
-    }
-    */
-
-
-
 }
 
