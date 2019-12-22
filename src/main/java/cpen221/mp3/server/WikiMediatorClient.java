@@ -77,27 +77,31 @@ public class WikiMediatorClient {
         try {
             WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
-            //put junk in here!
-
-            String id = "yeet";
-            String type = "getConnectedPages";
-            String pageTitle = "Barack Obama";
-            String hops = "10";
-
-            JsonObject request = new JsonObject();
-            request.addProperty("id", id);
-            request.addProperty("type", type);
-            request.addProperty("pageTitle", pageTitle);
-            request.addProperty("hops", hops);
-            request.addProperty("timeout", "1");
+            String id = "test1";
+            JsonObject oneR = new JsonObject();
+            oneR.addProperty("id", id);
+            oneR.addProperty("type", "test");
 
 
-            client.sendRequest(request.toString());
-            System.err.println(request.toString());
+            String two = "test2";
+            JsonObject twoR = new JsonObject();
+            twoR.addProperty("id", two);
+            twoR.addProperty("type", "test");
+
+
+            client.sendRequest(oneR.toString());
+            System.err.println("OneR: "+ oneR.toString());
 
             String reply = client.getReply();
 
-            System.err.println("Reply!:" + reply);
+            client.sendRequest(twoR.toString());
+            System.err.println("twoR: "+ twoR.toString());
+
+            String reply2 = client.getReply();
+
+            System.err.println("First:" + reply + "end");
+            System.err.println("Second:" + reply2 + "end");
+
 
             client.close();
         } catch (IOException ioe) {

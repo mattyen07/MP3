@@ -26,11 +26,12 @@ public class WikiMediatorServer {
     public static final int WIKIMEDIATORSERVER_PORT = 42069;
     private static final String FAILLURE_STATUS = "failed";
     private static final String SUCCESS_STATUS = "success";
+    private volatile boolean exit;
 
     private WikiMediator wmInstance;
     private ServerSocket serverSocket;
     private int maxRequests;
-    private int numCurrentRequests;
+    private volatile int numCurrentRequests;
 
     /**
      * Start a server at a given port number, with the ability to process
@@ -46,6 +47,16 @@ public class WikiMediatorServer {
         this.serverSocket = new ServerSocket(port);
         this.maxRequests = n;
         this.numCurrentRequests = 0;
+        this.exit = false;
+    }
+
+
+    /**
+     * stops server.
+     * https://www.java67.com/2015/07/how-to-stop-thread-in-java-example.html
+     */
+    public void stop() {
+        this.exit = true;
     }
 
     /**
@@ -59,42 +70,43 @@ public class WikiMediatorServer {
         wmInstance.loadStatsFromFile();
         wmInstance.loadStartTimeFromFile();
 
-        while (true) {
+        while (!exit) {
             // block until a client connects
             final Socket socket = serverSocket.accept();
-
-            if(this.numCurrentRequests < this.maxRequests) {
-                synchronized (this) {
-                    this.numCurrentRequests++;
-                    System.err.println("Current Requests: " + this.numCurrentRequests);
-                }
-                // create a new thread to handle that client
-                Thread handler = new Thread(new Runnable() {
-                    public void run() {
-                        try {
-                            try {
-                                handle(socket);
-                            } finally {
-
-                                socket.close();
-                            }
-                        } catch (IOException ioe) {
-                            // this exception wouldn't terminate serve(),
-                            // since we're now on a different thread, but
-                            // we still need to handle it
-                            ioe.printStackTrace();
-                        }
+            synchronized (this) {
+                if (this.numCurrentRequests < this.maxRequests) {
+                    synchronized (this) {
+                        this.numCurrentRequests++;
+                        System.err.println("Current Requests: " + this.numCurrentRequests);
                     }
-                });
-                // start the thread
-                handler.start();
-            } else {
-                //if there are too many requests being handled disconnect client.
-                PrintWriter out = new PrintWriter(new OutputStreamWriter(
-                        socket.getOutputStream()), true);
-                out.println("Sorry Server is full :(");
-                out.close();
-                socket.close();
+                    // create a new thread to handle that client
+                    Thread handler = new Thread(new Runnable() {
+                        public void run() {
+                            try {
+                                try {
+                                    handle(socket);
+                                } finally {
+
+                                    socket.close();
+                                }
+                            } catch (IOException ioe) {
+                                // this exception wouldn't terminate serve(),
+                                // since we're now on a different thread, but
+                                // we still need to handle it
+                                ioe.printStackTrace();
+                            }
+                        }
+                    });
+                    // start the thread
+                    handler.start();
+                } else {
+                    //if there are too many requests being handled disconnect client.
+                    PrintWriter out = new PrintWriter(new OutputStreamWriter(
+                            socket.getOutputStream()), true);
+                    out.println("Sorry Server is full :(");
+                    out.close();
+                    socket.close();
+                }
             }
 
 
@@ -131,6 +143,15 @@ public class WikiMediatorServer {
             JsonObject returningObject = new JsonObject();
             for (String line = in.readLine(); line != null; line = in.readLine()) {
                 JsonObject request = parser.parse(line).getAsJsonObject();
+
+                //print statements for test
+                System.err.println("Request"+ request.toString());
+
+
+
+
+
+
 
                 if(request.has("timeout")) {
                     int timeout = Integer.parseInt(request.get("timeout").getAsString().replaceAll(",", ""));
@@ -173,11 +194,17 @@ public class WikiMediatorServer {
                 wmInstance.writeStatsToFile();
                 wmInstance.writeStartTimeToFile();
 
-                out.println(returningObject.toString() + "\r\n");
+                System.err.println("Result" + returningObject.toString());
+
+                out.println(returningObject.toString() + "\n");
+
             }
         } finally {
             out.close();
             in.close();
+
+            System.err.println("client was disconnected");
+
             synchronized (this) {
                 this.numCurrentRequests--;
                 System.err.println("Current Requests: " + this.numCurrentRequests);
@@ -266,6 +293,9 @@ public class WikiMediatorServer {
             returningObject.addProperty("status", this.SUCCESS_STATUS);
             returningObject.addProperty("response", gson.toJson(result));
 
+        } else {
+            returningObject.addProperty("id", id);
+            returningObject.addProperty("test result", id);
         }
 
         return returningObject;
