@@ -10,8 +10,9 @@ public class Cache<T extends Cacheable> {
     RI: capacity is not null and is the largest size of the CacheMap
         timeout is not null and is the largest time an item can exist in the cache.
         cacheMap contains all objects in the cache as keys and the TimePair is the value.
-            for each TimePair value, .getExpiryTime() returns the time at which the cached item expires
-            and .getLastAccess() returns the most recent time the item was accessed.
+            for each TimePair value, .getExpiryTime() returns the time at which the cached
+            item expires and .getLastAccess() returns the most recent time the item was
+            accessed.
      */
 
     /*
@@ -26,19 +27,23 @@ public class Cache<T extends Cacheable> {
 
         capacity and timeout are final and immutable variables, thus are thread safe
 
-        cacheMap: this uses concurrent hashMap which has operations that are thread safe, however when
-        being accesses, must be wrapped in a synchronized block which we do
+        cacheMap: this uses concurrent hashMap which has operations that are thread safe,
+        however when being accesses, must be wrapped in a synchronized block which we do
 
-        put: this method is thread safe because we wrap sections that access the cacheMap in synchronized blocks
+        put: this method is thread safe because we wrap sections that access the cacheMap in
+        synchronized blocks
 
-        get: this method is thread safe because we wrap sections that access the cacheMap in synchronized blocks
+        get: this method is thread safe because we wrap sections that access the cacheMap in
+        synchronized blocks
 
-        touch: this method is thread safe because we wrap sections that access the cacheMap in synchronized block
+        touch: this method is thread safe because we wrap sections that access the cacheMap in
+        synchronized block
 
-        update: this method is thread safe because we wrap sections that access the cacheMap in synchronized block
+        update: this method is thread safe because we wrap sections that access the cacheMap in
+        synchronized block
 
-        All of the above methods local variables are thread safe since each thread will have it's own space
-        allocated for local variables
+        All of the above methods local variables are thread safe since each thread will have
+        it's own space allocated for local variables
      */
 
     /* the default cache size is 32 objects */
@@ -57,7 +62,8 @@ public class Cache<T extends Cacheable> {
      * are removed from the cache.
      *
      * @param capacity >=1 the number of objects the cache can hold.
-     * @param timeout >=0  the duration in seconds an object should be in the cache before it times out.
+     * @param timeout >=0  the duration in seconds an object should be in the
+     *                cache before it times out.
      */
     public Cache(int capacity, int timeout) {
 
@@ -89,9 +95,10 @@ public class Cache<T extends Cacheable> {
      */
     public boolean put(T t) {
 
-        synchronized(this) {
+        synchronized (this) {
             if (this.cacheMap.size() < this.capacity && !this.cacheMap.containsKey(t)) {
-                TimePair add = new TimePair(LocalDateTime.now(), LocalDateTime.now().plusSeconds(this.timeout));
+                TimePair add = new TimePair(LocalDateTime.now(),
+                        LocalDateTime.now().plusSeconds(this.timeout));
                 this.cacheMap.put(t, add);
                 return true;
             }
@@ -108,7 +115,8 @@ public class Cache<T extends Cacheable> {
                 }
 
                 this.cacheMap.remove(removeObject);
-                this.cacheMap.put(t, new TimePair(time, LocalDateTime.now().plusSeconds(this.timeout)));
+                this.cacheMap.put(t, new TimePair(time,
+                        LocalDateTime.now().plusSeconds(this.timeout)));
                 return true;
             }
         }
@@ -123,7 +131,7 @@ public class Cache<T extends Cacheable> {
      */
     public T get(String id) throws NotFoundException {
 
-        synchronized(this) {
+        synchronized (this) {
             for (T object : this.cacheMap.keySet()) {
                 if (object.id().equals(id)) {
                     LocalDateTime expiry = this.cacheMap.get(object).getExpiryTime();
@@ -150,7 +158,8 @@ public class Cache<T extends Cacheable> {
             for (T object : this.cacheMap.keySet()) {
                 if (object.id().equals(id)) {
                     LocalDateTime update = this.cacheMap.get(object).getLastAccess();
-                    TimePair replacePair = new TimePair(update, LocalDateTime.now().plusSeconds(this.timeout));
+                    TimePair replacePair = new TimePair(update,
+                            LocalDateTime.now().plusSeconds(this.timeout));
                     this.cacheMap.replace(object, replacePair);
                     return true;
                 }
@@ -170,10 +179,11 @@ public class Cache<T extends Cacheable> {
      */
     public boolean update(T t) {
 
-        synchronized(this) {
+        synchronized (this) {
             if (this.cacheMap.containsKey(t)) {
                 LocalDateTime update = this.cacheMap.get(t).getLastAccess();
-                TimePair replacePair = new TimePair(update, LocalDateTime.now().plusSeconds(this.timeout));
+                TimePair replacePair = new TimePair(update,
+                        LocalDateTime.now().plusSeconds(this.timeout));
                 this.cacheMap.replace(t, replacePair);
                 return true;
             }

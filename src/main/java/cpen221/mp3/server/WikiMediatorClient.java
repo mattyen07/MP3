@@ -1,13 +1,7 @@
 package cpen221.mp3.server;
 
-import cpen221.mp3.wikimediator.WikiMediator;
-
-import java.net.InetAddress;
 import java.net.Socket;
-import java.net.ServerSocket;
 import java.io.*;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 
 import com.google.gson.*;
 
@@ -44,7 +38,7 @@ public class WikiMediatorClient {
     /**
      * Get a reply from the next request that was submitted.
      * Requires this is "open".
-     * @return the requested Fibonacci number
+     * @return the requested reply
      * @throws IOException if network or server failure
      */
     public String getReply() throws IOException {
@@ -75,7 +69,8 @@ public class WikiMediatorClient {
      */
     public static void main(String[] args) {
         try {
-            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+            WikiMediatorClient client = new WikiMediatorClient("localhost",
+                    WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
             String id = "test1";
             JsonObject oneR = new JsonObject();
@@ -90,12 +85,12 @@ public class WikiMediatorClient {
 
 
             client.sendRequest(oneR.toString());
-            System.err.println("OneR: "+ oneR.toString());
+            System.err.println("OneR: " + oneR.toString());
 
             String reply = client.getReply();
 
             client.sendRequest(twoR.toString());
-            System.err.println("twoR: "+ twoR.toString());
+            System.err.println("twoR: " + twoR.toString());
 
             String reply2 = client.getReply();
 

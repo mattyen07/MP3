@@ -304,11 +304,6 @@ public class WikiMediatorServer {
         return returningObject;
     }
 
-
-
-    /**
-     * Start a FibonacciServer running on the default port.
-     */
     public static void main(String[] args) {
         try {
             WikiMediatorServer server = new WikiMediatorServer(WIKIMEDIATORSERVER_PORT, 1);

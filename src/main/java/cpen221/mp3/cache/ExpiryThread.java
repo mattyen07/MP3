@@ -19,7 +19,8 @@ public class ExpiryThread<T extends Cacheable> implements Runnable {
 
     /**
      * Initializes new instance of ExpiryThread with a map of the objects in the cache.
-     * @param cacheObjects is not null and its keys are the objects in the cache and the values are the TimePair's
+     * @param cacheObjects is not null and its keys are the objects in the cache
+     *                     and the values are the TimePair's
      *            corresponding to the objects.
      */
     public ExpiryThread(Map<T, TimePair> cacheObjects) {
