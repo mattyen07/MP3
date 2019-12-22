@@ -620,7 +620,7 @@ public class Tests {
         wm.getPage("soccer");
         wm.getPage("ultimate");
 
-        File file = new File ("local/timeMapFile");
+        File file = new File("local/timeMapFile");
         file.delete();
         WikiMediator wm1 = new WikiMediator(new Cache());
         wm1.loadStatsFromFile();
@@ -666,7 +666,7 @@ public class Tests {
         wm.getPage("hockey");
         wm.simpleSearch("soccer", 3);
 
-        File file = new File ("local/requestMapFile");
+        File file = new File("local/requestMapFile");
         file.delete();
         WikiMediator wm1 = new WikiMediator(new Cache());
         wm1.loadRequestsFromFile();
@@ -727,7 +727,7 @@ public class Tests {
     }
 
     @Test
-    public void getPathTest5(){
+    public void getPathTest5() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
 
@@ -737,11 +737,12 @@ public class Tests {
     @Test
     public void executeQueryTest1() {
         WikiMediator wm = new WikiMediator();
-        Wiki wiki = new Wiki ("en.wikipedia.org");
+        Wiki wiki = new Wiki("en.wikipedia.org");
         List<String> answer = new ArrayList<>();
         answer = wiki.getCategoryMembers("Category: Illinois state senators");
         Collections.reverse(answer);
-        assertEquals(answer, wm.executeQuery("get page where category is 'Illinois state senators'"));
+        assertEquals(answer, wm.executeQuery(
+                "get page where category is 'Illinois state senators'"));
     }
 
     @Test
@@ -754,9 +755,10 @@ public class Tests {
     @Test
     public void executeQueryTest3() {
         WikiMediator wm = new WikiMediator();
-        Wiki wiki = new Wiki ("en.wikipedia.org");
+        Wiki wiki = new Wiki("en.wikipedia.org");
         List<String> answer = new ArrayList<>();
-        String query = "get author where (title is 'Barack Obama' or category is 'Mathematical optimization in business')";
+        String query = "get author where (title is 'Barack Obama' or "
+                + "category is 'Mathematical optimization in business')";
         answer.add(wiki.getLastEditor("Barack Obama"));
         for (String s : wiki.getCategoryMembers("Category:Mathematical optimization in business")) {
             String editor = wiki.getLastEditor(s);
@@ -782,7 +784,8 @@ public class Tests {
         WikiMediator wm = new WikiMediator();
         Wiki wiki = new Wiki("en.wikipedia.org");
         List<String> answer = new ArrayList<>();
-        String query = "get category where (author is 'CLCStudent' and (title is 'Barack Obama' or title is 'Naomi Klein'))";
+        String query = "get category where (author is 'CLCStudent' and "
+                + "(title is 'Barack Obama' or title is 'Naomi Klein'))";
 
         for (String s : wiki.getCategoriesOnPage("Barack Obama")) {
             if (wiki.getLastEditor(s).equals("CLCStudent")) {
@@ -803,7 +806,8 @@ public class Tests {
     public void executeQueryTest6() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        String query = "get page where (author is 'Mediaexpert3' and title is 'Barack Obama')";
+        String query = "get page where (author is 'Mediaexpert3' "
+                + "and title is 'Barack Obama')";
         answer.add("Barack Obama");
 
         assertEquals(answer, wm.executeQuery(query));
@@ -813,7 +817,8 @@ public class Tests {
     public void executeQueryTest7() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        String query = "get page where (category is 'Illinois state senators' and category is 'HuffPost writers and columnists')";
+        String query = "get page where (category is 'Illinois state senators' "
+                + "and category is 'HuffPost writers and columnists')";
         answer.add("Barack Obama");
 
         assertEquals(answer, wm.executeQuery(query));
@@ -824,7 +829,8 @@ public class Tests {
         WikiMediator wm = new WikiMediator();
         Wiki wiki = new Wiki("en.wikipedia.org");
         List<String> answer = new ArrayList<>();
-        String query = "get author where (category is 'HuffPost writers and columnists' and title is 'Barack Obama')";
+        String query = "get author where (category is 'HuffPost writers and columnists' "
+                + "and title is 'Barack Obama')";
         answer.add(wiki.getLastEditor("Barack Obama"));
 
         assertEquals(answer, wm.executeQuery(query));
@@ -844,7 +850,8 @@ public class Tests {
     public void executeQueryTest10() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        String query = "get page where (author is 'Mediaexpert3' and (title is 'Barack Obama' or title is 'Hockey'))";
+        String query = "get page where (author is 'Mediaexpert3' and "
+                + "(title is 'Barack Obama' or title is 'Hockey'))";
         answer.add("Barack Obama");
 
         assertEquals(answer, wm.executeQuery(query));
@@ -854,7 +861,8 @@ public class Tests {
     public void executeQueryTest11() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        String query = "get category where (author is 'Mediaexpert3' and (title is 'Barack Obama' or title is 'Hockey'))";
+        String query = "get category where (author is 'Mediaexpert3' and "
+                + "(title is 'Barack Obama' or title is 'Hockey'))";
 
         assertEquals(answer, wm.executeQuery(query));
     }
@@ -863,7 +871,8 @@ public class Tests {
     public void executeQueryTest12() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        String query = "get author where (author is 'Mediaexpert3' and (title is 'Barack Obama' or title is 'Hockey'))";
+        String query = "get author where (author is 'Mediaexpert3' and "
+                + "(title is 'Barack Obama' or title is 'Hockey'))";
         answer.add("Mediaexpert3");
 
         assertEquals(answer, wm.executeQuery(query));
@@ -872,7 +881,7 @@ public class Tests {
     @Test
     public void executeQueryTest13() {
         WikiMediator wm = new WikiMediator();
-        Wiki wiki = new Wiki ("en.wikipedia.org");
+        Wiki wiki = new Wiki("en.wikipedia.org");
         List<String> answer = new ArrayList<>();
         String query = "get category where category is 'Illinois state senators'";
         answer.addAll(wiki.getCategoriesOnPage("Category:Illinois state senators"));
@@ -884,7 +893,7 @@ public class Tests {
     @Test
     public void executeQueryTest14() {
         WikiMediator wm = new WikiMediator();
-        Wiki wiki = new Wiki ("en.wikipedia.org");
+        Wiki wiki = new Wiki("en.wikipedia.org");
         List<String> answer = new ArrayList<>();
         String query = "get page where category is 'Illinois state senators' asc";
         for (String s : wiki.getCategoryMembers("Category:Illinois state senators")) {
@@ -899,7 +908,7 @@ public class Tests {
     @Test
     public void executeQueryTest15() {
         WikiMediator wm = new WikiMediator();
-        Wiki wiki = new Wiki ("en.wikipedia.org");
+        Wiki wiki = new Wiki("en.wikipedia.org");
         List<String> answer = new ArrayList<>();
         String query = "get page where category is 'Illinois state senators' desc";
         for (String s : wiki.getCategoryMembers("Category:Illinois state senators")) {
@@ -915,9 +924,10 @@ public class Tests {
     @Test
     public void executeQueryTest16() {
         WikiMediator wm = new WikiMediator();
-        Wiki wiki = new Wiki ("en.wikipedia.org");
+        Wiki wiki = new Wiki("en.wikipedia.org");
         List<String> answer = new ArrayList<>();
-        String query = "get page where (category is 'HuffPost writers and columnists' or (title is 'hockey' and author is 'Smjg'))";
+        String query = "get page where (category is 'HuffPost writers and columnists' or "
+                + "(title is 'hockey' and author is 'Smjg'))";
         answer.addAll(wiki.getCategoryMembers("Category:HuffPost writers and columnists"));
         answer.add("hockey");
         Collections.reverse(answer);
@@ -929,7 +939,8 @@ public class Tests {
     public void executeQueryTest17() {
         WikiMediator wm = new WikiMediator();
         List<String> answer = new ArrayList<>();
-        String query = "get page where (title is 'Ultimate' or (title is 'Hockey' or author is 'Smjg'))";
+        String query = "get page where (title is 'Ultimate' or "
+                + "(title is 'Hockey' or author is 'Smjg'))";
         answer.add("Hockey");
         answer.add("Ultimate");
 
@@ -939,9 +950,10 @@ public class Tests {
     @Test
     public void executeQueryTest18() {
         WikiMediator wm = new WikiMediator();
-        Wiki wiki = new Wiki ("en.wikipedia.org");
+        Wiki wiki = new Wiki("en.wikipedia.org");
         List<String> answer = new ArrayList<>();
-        String query = "get author where (title is 'Hockey' and (title is 'Hockey' and title is 'Soccer'))";
+        String query = "get author where (title is 'Hockey' and "
+                + "(title is 'Hockey' and title is 'Soccer'))";
         answer.add(wiki.getLastEditor("Hockey"));
 
         assertEquals(answer, wm.executeQuery(query));
@@ -971,7 +983,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -983,7 +996,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "test1";
                     String type = "simpleSearch";
@@ -1032,7 +1046,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1045,7 +1060,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "test2";
                     String type = "getPage";
@@ -1090,7 +1106,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1103,7 +1120,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "test2";
                     String type = "getConnectedPages";
@@ -1149,7 +1167,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1162,7 +1181,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "test2";
                     String type = "zeitgeist";
@@ -1170,7 +1190,7 @@ public class Tests {
                     JsonObject request = new JsonObject();
                     request.addProperty("id", id);
                     request.addProperty("type", type);
-                    request.addProperty("limit",5);
+                    request.addProperty("limit", 5);
 
                     client.sendRequest(request.toString());
                     System.err.println(request.toString());
@@ -1209,7 +1229,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1222,7 +1243,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "test2";
                     String type = "trending";
@@ -1230,7 +1252,7 @@ public class Tests {
                     JsonObject request = new JsonObject();
                     request.addProperty("id", id);
                     request.addProperty("type", type);
-                    request.addProperty("limit",1);
+                    request.addProperty("limit", 1);
 
                     client.sendRequest(request.toString());
                     System.err.println(request.toString());
@@ -1266,7 +1288,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1279,7 +1302,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "test2";
                     String type = "peakLoad30s";
@@ -1325,7 +1349,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1338,7 +1363,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "test2";
                     String type = "getPath";
@@ -1385,7 +1411,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1398,7 +1425,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "test2";
                     String type = "getPath";
@@ -1446,7 +1474,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1458,7 +1487,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "test2";
                     String type = "executeQuery";
@@ -1466,7 +1496,8 @@ public class Tests {
                     JsonObject request = new JsonObject();
                     request.addProperty("id", id);
                     request.addProperty("type", type);
-                    request.addProperty("query", "get page where category is 'Illinois state senators'");
+                    request.addProperty("query",
+                            "get page where category is 'Illinois state senators'");
 
 
                     client.sendRequest(request.toString());
@@ -1502,7 +1533,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1515,7 +1547,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "test2";
                     String type = "getConnectedPages";
@@ -1563,7 +1596,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 2);
+                    WikiMediatorServer server = new WikiMediatorServer(
+                            WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 2);
                     server.serve();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1576,7 +1610,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client1 = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client1 = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "client1";
                     String type = "getConnectedPages";
@@ -1607,7 +1642,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client2 = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client2 = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "client2";
                     String type = "getConnectedPages";
@@ -1637,7 +1673,8 @@ public class Tests {
             @Override
             public void run() {
                 try {
-                    WikiMediatorClient client2 = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+                    WikiMediatorClient client2 = new WikiMediatorClient(
+                            "localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
 
                     String id = "client3";
                     String type = "getConnectedPages";
@@ -1678,17 +1715,4 @@ public class Tests {
         server.interrupt();
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
