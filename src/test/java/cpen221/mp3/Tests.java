@@ -1020,7 +1020,7 @@ public class Tests {
 
         clientThread.run();
 
-
+        server.interrupt();
 
     }
 
@@ -1079,6 +1079,7 @@ public class Tests {
 
         clientThread.run();
 
+        server.interrupt();
 
     }
 
@@ -1136,8 +1137,7 @@ public class Tests {
         }
 
         clientThread.run();
-
-
+        server.interrupt();
 
     }
 
@@ -1195,7 +1195,7 @@ public class Tests {
         }
 
         clientThread.run();
-
+        server.interrupt();
 
 
     }
@@ -1255,7 +1255,7 @@ public class Tests {
         }
 
         clientThread.run();
-
+        server.interrupt();
     }
 
     //tests peakLoad30s
@@ -1313,7 +1313,7 @@ public class Tests {
         }
 
         clientThread.run();
-
+        server.interrupt();
 
     }
 
@@ -1373,7 +1373,7 @@ public class Tests {
         }
 
         clientThread.run();
-
+        server.interrupt();
 
     }
 
@@ -1434,6 +1434,7 @@ public class Tests {
 
         clientThread.run();
 
+        server.interrupt();
 
     }
 
@@ -1491,7 +1492,7 @@ public class Tests {
         }
 
         clientThread.run();
-
+        server.interrupt();
     }
 
     //test timeout
@@ -1549,8 +1550,7 @@ public class Tests {
         }
 
         clientThread.run();
-
-
+        server.interrupt();
 
     }
 
@@ -1675,6 +1675,7 @@ public class Tests {
         clientThread2.start();
         clientThread3.run();
 
+        server.interrupt();
 
     }
 

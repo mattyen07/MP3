@@ -43,7 +43,13 @@ public class WikiMediatorServer {
         is modified in an synchronized block, thus only one thread can access it at a time.
 
         Methods
-        serve: This method is thread safe because only one thread ever accesses it
+        serve: This method is thread safe because only one thread ever accesses it. All refrences to class field are
+        to ones that are threadsafe/in a threadsafe way.
+
+        handle: This method is thread safe because it only uses local variables and variables which are thread safe.
+
+        getWikiReply: This method is thread safe because it only uses local variables/variables that are only accessed
+        by a single thread.
 
 
      */
@@ -75,6 +81,8 @@ public class WikiMediatorServer {
 
     /**
      * Run the server, listening for connections and handling them.
+     * If this.maxRequests are currently being made, does not let any new clients make requests.
+     * Instead they are disconnected from the server.
      * @throws IOException if the main server socket is broken
      */
     public void serve() throws IOException {
@@ -130,6 +138,7 @@ public class WikiMediatorServer {
      * Parses the JSON request of client such that we can request the appropriate
      * method from the WikiMediator instance
      * @param socket  socket where client is connected
+     * @modifies requestMapFile, startTimeFile, timeMapFile with current statistical data of the WikiMediator.
      * @throws IOException if connection encounters an error
      */
     private void handle(Socket socket) throws IOException {
@@ -218,8 +227,8 @@ public class WikiMediatorServer {
 
     /**
      * Helper method to get the correct Json formatted reply from WikiMediator based on the request.
-     * @param request is a correctly formatted JsonObject for the server.
-     * @return correctly formatted reply containing the results of the wikimediator.
+     * @param request is a correctly formatted JsonObject for the server where request.has("timeout") = false
+     * @return correctly formatted reply containing the results of the wikimediator method.
      */
     private JsonObject getWikiReply(JsonObject request) {
 
@@ -304,18 +313,5 @@ public class WikiMediatorServer {
         return returningObject;
     }
 
-
-
-    /**
-     * Start a FibonacciServer running on the default port.
-     */
-    public static void main(String[] args) {
-        try {
-            WikiMediatorServer server = new WikiMediatorServer(WIKIMEDIATORSERVER_PORT, 1);
-            server.serve();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
 
