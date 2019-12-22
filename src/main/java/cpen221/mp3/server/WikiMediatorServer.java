@@ -313,5 +313,13 @@ public class WikiMediatorServer {
         return returningObject;
     }
 
+    public static void main(String[] args) {
+        try {
+            WikiMediatorServer server = new WikiMediatorServer(WIKIMEDIATORSERVER_PORT, 1);
+            server.serve();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
