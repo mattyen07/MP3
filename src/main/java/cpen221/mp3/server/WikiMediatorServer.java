@@ -55,6 +55,11 @@ public class WikiMediatorServer {
      */
     public void serve() throws IOException {
 
+        //load previous stats from file:
+        wmInstance.loadRequestsFromFile();
+        wmInstance.loadStatsFromFile();
+        wmInstance.loadStartTimeFromFile();
+
         while (true) {
             // block until a client connects
             final Socket socket = serverSocket.accept();
@@ -107,12 +112,6 @@ public class WikiMediatorServer {
      */
     private void handle(Socket socket) throws IOException {
         System.err.println("client connected");
-
-
-        //load previous stats from file:
-        wmInstance.loadRequestsFromFile();
-        wmInstance.loadStatsFromFile();
-        wmInstance.loadStartTimeFromFile();
 
 
         // get the socket's input stream, and wrap converters around it

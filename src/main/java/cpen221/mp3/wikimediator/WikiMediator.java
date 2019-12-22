@@ -357,7 +357,11 @@ public class WikiMediator {
                     }
                 }
                 count++;
-                mostCommon.add(mostOccurringSearch);
+                if (!mostCommon.contains(mostOccurringSearch)) {
+                    mostCommon.add(mostOccurringSearch);
+                } else {
+                    break;
+                }
             }
         }
 
@@ -419,7 +423,11 @@ public class WikiMediator {
             }
 
             limitCount++;
-            trendingList.add(frequencyString);
+            if (!trendingList.contains(frequencyString)) {
+                trendingList.add(frequencyString);
+            } else {
+                break;
+            }
         }
 
         return trendingList;
