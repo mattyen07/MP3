@@ -966,6 +966,7 @@ public class Tests {
     //test simple search request
     @Test
     public void serverTest1() {
+
         Thread server = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -1363,109 +1364,326 @@ public class Tests {
             }
         });
 
+        server.start();
+
+        try {
+            TimeUnit.SECONDS.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        clientThread.run();
+
 
     }
 
     //tests getPath
     @Test
     public void serverTest8() {
+
+        Thread server = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    server.serve();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
+        Thread clientThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+                    String id = "test2";
+                    String type = "getPath";
+
+                    JsonObject request = new JsonObject();
+                    request.addProperty("id", id);
+                    request.addProperty("type", type);
+                    request.addProperty("startPage", "Hockey");
+                    request.addProperty("stopPage", "Sidney Crosby");
+
+
+                    client.sendRequest(request.toString());
+                    System.err.println(request.toString());
+
+                    String reply = client.getReply();
+
+                    System.err.println("Reply!:" + reply);
+
+                    client.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        });
+
+        server.start();
+
         try {
-            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
-
-            String id = "test2";
-            String type = "getPath";
-
-            JsonObject request = new JsonObject();
-            request.addProperty("id", id);
-            request.addProperty("type", type);
-            request.addProperty("startPage", "Hockey");
-            request.addProperty("stopPage", "Sidney Crosby");
-
-
-            client.sendRequest(request.toString());
-            System.err.println(request.toString());
-
-            String reply = client.getReply();
-
-            System.err.println("Reply!:" + reply);
-
-            client.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+            TimeUnit.SECONDS.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+
+        clientThread.run();
+
+
     }
 
     //tests executeQuery
     @Test
     public void serverTest9() {
+
+        Thread server = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    server.serve();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        Thread clientThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+                    String id = "test2";
+                    String type = "executeQuery";
+
+                    JsonObject request = new JsonObject();
+                    request.addProperty("id", id);
+                    request.addProperty("type", type);
+                    request.addProperty("query", "get page where category is 'Illinois state senators'");
+
+
+                    client.sendRequest(request.toString());
+                    System.err.println(request.toString());
+
+                    String reply = client.getReply();
+
+                    System.err.println("Reply!:" + reply);
+
+                    client.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        });
+
+        server.start();
+
         try {
-            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
-
-            String id = "test2";
-            String type = "executeQuery";
-
-            JsonObject request = new JsonObject();
-            request.addProperty("id", id);
-            request.addProperty("type", type);
-            request.addProperty("query", "get page where category is 'Illinois state senators'");
-
-
-            client.sendRequest(request.toString());
-            System.err.println(request.toString());
-
-            String reply = client.getReply();
-
-            System.err.println("Reply!:" + reply);
-
-            client.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+            TimeUnit.SECONDS.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+
+        clientThread.run();
+
     }
 
-
-    //tests multiple requests
+    //test timeout
     @Test
     public void serverTest10() {
+        Thread server = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 1);
+                    server.serve();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
+        Thread clientThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+                    String id = "test2";
+                    String type = "getConnectedPages";
+
+                    JsonObject request = new JsonObject();
+                    request.addProperty("id", id);
+                    request.addProperty("type", type);
+                    request.addProperty("pageTitle", "Star Wars");
+                    request.addProperty("hops", 10);
+                    request.addProperty("timeout", 1);
+
+                    client.sendRequest(request.toString());
+                    System.err.println(request.toString());
+
+                    String reply = client.getReply();
+
+                    System.err.println("Reply!:" + reply);
+
+                    client.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        });
+
+        server.start();
 
         try {
-            WikiMediatorClient client = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
-
-            String id = "test2";
-            String type = "executeQuery";
-
-            JsonObject request = new JsonObject();
-            request.addProperty("id", id);
-            request.addProperty("type", type);
-            request.addProperty("query", "get page where category is 'Illinois state senators'");
-
-            String id2 = "test2";
-            String type2 = "getPage";
-
-            JsonObject request2 = new JsonObject();
-            request.addProperty("id", id2);
-            request.addProperty("type", type2);
-            request.addProperty("pageTitle", "Star Wars");
-
-
-            client.sendRequest(request.toString());
-            System.err.println(request.toString());
-
-            client.sendRequest(request2.toString());
-            System.err.println(request2.toString());
-
-
-            String reply = client.getReply();
-            System.err.println("Reply 1:" + reply);
-
-            String reply2 = client.getReply();
-            System.err.println("Reply 2:" + reply2);
-
-            client.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+            TimeUnit.SECONDS.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+
+        clientThread.run();
+
+
+
     }
+
+
+    //tests multiple clients
+    @Test
+    public void serverTest11() {
+
+        Thread server = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WikiMediatorServer server = new WikiMediatorServer(WikiMediatorServer.WIKIMEDIATORSERVER_PORT, 2);
+                    server.serve();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
+        Thread clientThread1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WikiMediatorClient client1 = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+                    String id = "client1";
+                    String type = "getConnectedPages";
+
+                    JsonObject request = new JsonObject();
+                    request.addProperty("id", id);
+                    request.addProperty("type", type);
+                    request.addProperty("pageTitle", "Star Wars");
+                    request.addProperty("hops", 10);
+                    request.addProperty("timeout", 10);
+
+                    client1.sendRequest(request.toString());
+                    System.err.println(request.toString());
+
+                    String reply = client1.getReply();
+
+                    System.err.println("Reply!:" + reply);
+
+                    client1.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        });
+
+
+        Thread clientThread2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WikiMediatorClient client2 = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+                    String id = "client2";
+                    String type = "getConnectedPages";
+
+                    JsonObject request = new JsonObject();
+                    request.addProperty("id", id);
+                    request.addProperty("type", type);
+                    request.addProperty("pageTitle", "Star Trek");
+                    request.addProperty("hops", 10);
+                    request.addProperty("timeout", 10);
+
+                    client2.sendRequest(request.toString());
+                    System.err.println(request.toString());
+
+                    String reply = client2.getReply();
+
+                    System.err.println("Reply!:" + reply);
+
+                    client2.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        });
+
+        Thread clientThread3 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WikiMediatorClient client2 = new WikiMediatorClient("localhost", WikiMediatorServer.WIKIMEDIATORSERVER_PORT);
+
+                    String id = "client3";
+                    String type = "getConnectedPages";
+
+                    JsonObject request = new JsonObject();
+                    request.addProperty("id", id);
+                    request.addProperty("type", type);
+                    request.addProperty("pageTitle", "Harry Potter");
+                    request.addProperty("hops", 10);
+                    request.addProperty("timeout", 10);
+
+                    client2.sendRequest(request.toString());
+                    System.err.println(request.toString());
+
+                    String reply = client2.getReply();
+
+                    System.err.println("Reply!:" + reply);
+
+                    client2.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        });
+
+        server.start();
+
+        try {
+            TimeUnit.SECONDS.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        clientThread1.start();
+        clientThread2.start();
+        clientThread3.run();
+
+
+    }
+
+
+
+
+
+
+
 
 
 
