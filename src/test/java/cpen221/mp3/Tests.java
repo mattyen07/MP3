@@ -1172,7 +1172,7 @@ public class Tests {
             request.addProperty("id", id);
             request.addProperty("type", type);
             request.addProperty("startPage", "Hockey");
-            request.addProperty("stopPage", "Hockey");
+            request.addProperty("stopPage", "Sidney Crosby");
 
 
             client.sendRequest(request.toString());
