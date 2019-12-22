@@ -45,9 +45,13 @@ public class WikiMediatorClient {
         JsonParser parser = new JsonParser();
         String reply = "error";
         Gson gson = new Gson();
-        reply = in.readLine();
-        return reply;
+        for (String line = in.readLine(); line != null; line = in.readLine()) {
+            reply = in.readLine();
+            return reply;
+        }
+        return "hi";
     }
+
 
     /**
      * Closes the client's connection to the server.
