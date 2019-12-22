@@ -218,7 +218,7 @@ public class WikiMediatorServer {
 
                 System.err.println("Result" + returningObject.toString());
 
-                out.println(returningObject.toString() + "\n");
+                out.println(returningObject.toString() + "\r\n");
 
             }
         } finally {

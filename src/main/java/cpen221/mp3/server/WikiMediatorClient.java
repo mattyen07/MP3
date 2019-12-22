@@ -49,6 +49,7 @@ public class WikiMediatorClient {
         return reply;
     }
 
+
     /**
      * Closes the client's connection to the server.
      * This client is now "closed". Requires this is "open".
