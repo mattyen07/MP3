@@ -45,11 +45,8 @@ public class WikiMediatorClient {
         JsonParser parser = new JsonParser();
         String reply = "error";
         Gson gson = new Gson();
-        for (String line = in.readLine(); line != null; line = in.readLine()) {
-            reply = in.readLine();
-            return reply;
-        }
-        return "hi";
+        reply = in.readLine();
+        return reply;
     }
 
 
