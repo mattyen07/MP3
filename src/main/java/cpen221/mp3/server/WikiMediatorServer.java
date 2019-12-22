@@ -17,7 +17,8 @@ public class WikiMediatorServer {
      */
 
     /*
-    AF: WikiMediatorServer is a server that can run the WikiMediator concurrently with multiple clients.
+    AF: WikiMediatorServer is a server that can run the WikiMediator concurrently
+    with multiple clients.
         wmInstance is the instance of the WikiMediator used by the server.
         serverSocket is the main server socket.
         maxRequest is the number of clients the server can handle.
@@ -25,30 +26,37 @@ public class WikiMediatorServer {
 
     /*
     Thread Safety Arguments:
-        WIKIMEDIATORSERVER_PORT: This variable is thread safe because it is a final and immutable type variable
+        WIKIMEDIATORSERVER_PORT: This variable is thread safe because
+        it is a final and immutable type variable
 
-        FAILURE_STATUS and SUCCESS_STATUS: These variables are thread safe because they are final and immutable
-        type variables
+        FAILURE_STATUS and SUCCESS_STATUS: These variables are thread
+        safe because they are final and immutable type variables
 
-        wmInstance: This variable is used by multiple threads, but is never changed by a thread, and since we
-        are only reading the data from the wmInstance, then it is thread safe
+        wmInstance: This variable is used by multiple threads, but is never
+        changed by a thread, and since we are only reading the data from the
+        wmInstance, then it is thread safe
 
-        serverSocket: serverSocket is thread safe because each thread get's its own socket and can't modify
+        serverSocket: serverSocket is thread safe because
+        each thread get's its own socket and can't modify
         another thread's socket
 
-        maxRequests: This variable is thread safe because it is a final variable and an immutable type, thus can't
+        maxRequests: This variable is thread safe because it is a
+        final variable and an immutable type, thus can't
         be changed
 
-        numCurrentRequests: This variable is thread safe because it is a volatile variable and when modified,
-        is modified in an synchronized block, thus only one thread can access it at a time.
+        numCurrentRequests: This variable is thread safe because
+        it is a volatile variable and when modified, is modified in an synchronized block,
+        thus only one thread can access it at a time.
 
         Methods
-        serve: This method is thread safe because only one thread ever accesses it. All refrences to class field are
-        to ones that are threadsafe/in a threadsafe way.
+        serve: This method is thread safe because only one thread ever accesses it.
+        All refrences to class field are to ones that are threadsafe/in a threadsafe way.
 
-        handle: This method is thread safe because it only uses local variables and variables which are thread safe.
+        handle: This method is thread safe because it only uses local variables
+        and variables which are thread safe.
 
-        getWikiReply: This method is thread safe because it only uses local variables/variables that are only accessed
+        getWikiReply: This method is thread safe because it only uses
+        local variables/variables that are only accessed
         by a single thread.
 
 
@@ -138,7 +146,8 @@ public class WikiMediatorServer {
      * Parses the JSON request of client such that we can request the appropriate
      * method from the WikiMediator instance
      * @param socket  socket where client is connected
-     * @modifies requestMapFile, startTimeFile, timeMapFile with current statistical data of the WikiMediator.
+     * @modifies requestMapFile, startTimeFile, timeMapFile with current
+     * statistical data of the WikiMediator.
      * @throws IOException if connection encounters an error
      */
     private void handle(Socket socket) throws IOException {
@@ -165,10 +174,11 @@ public class WikiMediatorServer {
                 JsonObject request = parser.parse(line).getAsJsonObject();
 
                 //print statements for test
-                System.err.println("Request"+ request.toString());
+                System.err.println("Request" + request.toString());
 
-                if(request.has("timeout")) {
-                    int timeout = Integer.parseInt(request.get("timeout").getAsString().replaceAll(",", ""));
+                if (request.has("timeout")) {
+                    int timeout = Integer.parseInt(request.get("timeout").getAsString()
+                            .replaceAll(",", ""));
                     ExecutorService executorService = Executors.newSingleThreadExecutor();
 
                     Future<JsonObject> result = executorService.submit(new Callable<JsonObject>() {
@@ -226,9 +236,11 @@ public class WikiMediatorServer {
 
 
     /**
-     * Helper method to get the correct Json formatted reply from WikiMediator based on the request.
-     * @param request is a correctly formatted JsonObject for the server where request.has("timeout") = false
-     * @return correctly formatted reply containing the results of the wikimediator method.
+     * Helper method to get the correct Json formatted reply
+     * from WikiMediator based on the request.
+     * @param request is a correctly formatted JsonObject for the server where
+     *                request.has("timeout") = false
+     * @return correctly formatted reply containing the results of this wikimediator method.
      */
     private JsonObject getWikiReply(JsonObject request) {
 
