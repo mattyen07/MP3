@@ -23,14 +23,38 @@ public class WikiMediatorServer {
         maxRequest is the number of clients the server can handle.
      */
 
+    /*
+    Thread Safety Arguments:
+        WIKIMEDIATORSERVER_PORT: This variable is thread safe because it is a final and immutable type variable
+
+        FAILURE_STATUS and SUCCESS_STATUS: These variables are thread safe because they are final and immutable
+        type variables
+
+        wmInstance: This variable is used by multiple threads, but is never changed by a thread, and since we
+        are only reading the data from the wmInstance, then it is thread safe
+
+        serverSocket: serverSocket is thread safe because each thread get's its own socket and can't modify
+        another thread's socket
+
+        maxRequests: This variable is thread safe because it is a final variable and an immutable type, thus can't
+        be changed
+
+        numCurrentRequests: This variable is thread safe because it is a volatile variable and when modified,
+        is modified in an synchronized block, thus only one thread can access it at a time.
+
+        Methods
+        serve: This method is thread safe because only one thread ever accesses it
+
+
+     */
+
     public static final int WIKIMEDIATORSERVER_PORT = 42069;
-    private static final String FAILLURE_STATUS = "failed";
+    private static final String FAILURE_STATUS = "failed";
     private static final String SUCCESS_STATUS = "success";
-    private volatile boolean exit;
 
     private WikiMediator wmInstance;
     private ServerSocket serverSocket;
-    private int maxRequests;
+    private final int maxRequests;
     private volatile int numCurrentRequests;
 
     /**
@@ -47,16 +71,6 @@ public class WikiMediatorServer {
         this.serverSocket = new ServerSocket(port);
         this.maxRequests = n;
         this.numCurrentRequests = 0;
-        this.exit = false;
-    }
-
-
-    /**
-     * stops server.
-     * https://www.java67.com/2015/07/how-to-stop-thread-in-java-example.html
-     */
-    public void stop() {
-        this.exit = true;
     }
 
     /**
@@ -70,7 +84,7 @@ public class WikiMediatorServer {
         wmInstance.loadStatsFromFile();
         wmInstance.loadStartTimeFromFile();
 
-        while (!exit) {
+        while (true) {
             // block until a client connects
             final Socket socket = serverSocket.accept();
             synchronized (this) {
@@ -108,10 +122,7 @@ public class WikiMediatorServer {
                     socket.close();
                 }
             }
-
-
         }
-
     }
 
     /**
@@ -147,12 +158,6 @@ public class WikiMediatorServer {
                 //print statements for test
                 System.err.println("Request"+ request.toString());
 
-
-
-
-
-
-
                 if(request.has("timeout")) {
                     int timeout = Integer.parseInt(request.get("timeout").getAsString().replaceAll(",", ""));
                     ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -169,13 +174,13 @@ public class WikiMediatorServer {
                     } catch (InterruptedException | ExecutionException e) {
 
                         returningObject.addProperty("id", request.get("id").getAsString());
-                        returningObject.addProperty("status", this.FAILLURE_STATUS);
+                        returningObject.addProperty("status", this.FAILURE_STATUS);
                         returningObject.addProperty("response", "Execution Failed");
 
                     } catch (TimeoutException e) {
 
                         returningObject.addProperty("id", request.get("id").getAsString());
-                        returningObject.addProperty("status", this.FAILLURE_STATUS);
+                        returningObject.addProperty("status", this.FAILURE_STATUS);
                         returningObject.addProperty("response", "Operation timed out");
 
                     }
@@ -186,8 +191,6 @@ public class WikiMediatorServer {
                 } else {
                     returningObject = getWikiReply(request);
                 }
-
-
 
                     //write stats to file!
                 wmInstance.writeRequestsToFile();

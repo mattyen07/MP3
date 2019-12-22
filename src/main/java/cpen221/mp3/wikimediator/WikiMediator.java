@@ -22,6 +22,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 
 import cpen221.mp3.cache.Cache;
 import cpen221.mp3.cache.CacheObject;
@@ -49,13 +50,13 @@ public class WikiMediator {
 
     /*
     Thread Safety Arguments:
-       timeMap: every time the timeMap is accessed, it is wrapped into a synchronized block to protect
-       the map from being added to or removed. All actions of the timeMap are atomic since we use
-       a concurrent hashMap which prevents certain data races.
+       timeMap: every time the timeMap is accessed, it is wrapped into a synchronized block to
+       protect the map from being added to or removed. All actions of the timeMap are atomic
+       since we use a concurrent hashMap which prevents certain data races.
 
-       requestMap: every time the request map is accessed, it is wrapped into a synchronized block to
-       protect the map from being added to or removed while being read. All actions of the timeMap are
-       atomic since we use a concurrent hashMap which prevents certain data races.
+       requestMap: every time the request map is accessed, it is wrapped into a synchronized block
+       to protect the map from being added to or removed while being read. All actions of the
+       timeMap are atomic since we use a concurrent hashMap which prevents certain data races.
 
        cache: is never changed, only accessed and is made thread safe in the cache class
        startTime: is never edited, thus no need to be synchronized as it is only read from
@@ -64,51 +65,55 @@ public class WikiMediator {
 
        timeMapFile and requestMapFile: are final and immutable types, thus are thread safe
 
-       simpleSearch: this method is thread safe since we use synchronized blocks and critical sections
-       to prevent data races. Furthermore, the addToMap function is synchronized, thus only one thread
-       can add to the timeMap at one time. In addition, the requestMap portion is synchronized such that
-       only one method can add to the requestMap at a time. When using the wiki to search, since we are
-       reading this data, this does not to be made thread safe and doesn't cause a data race since it is
-       local variable and is only reading from the wikipedia.
+
+       Methods!!
+
+       simpleSearch: this method is thread safe since we use synchronized blocks and critical
+       sections to prevent data races. Furthermore, the addToMap function is synchronized,
+       thus only one thread can add to the timeMap at one time. In addition, the requestMap portion
+       is synchronized such that only one method can add to the requestMap at a time. When using
+       the wiki to search, since we are reading this data, this does not to be made thread safe and
+       doesn't cause a data race since it is local variable and is only reading from the wikipedia.
 
        getPage: this method is thread safe because we use synchronized blocks and critical sections
-       to prevent data races. Furthermore, the addToMap function is synchronized and thus only one thread
-       can add to the timeMap at one time. In addition, the requestMap portion is synchronized such that
-       only one method can add to the requestMap at a time. When accessing wikipedia or the cache, since
-       the text variable is local and immutable, it is also thread safe and thus should return the right
-       value.
+       to prevent data races. Furthermore, the addToMap function is synchronized and thus only one
+       thread can add to the timeMap at one time. In addition, the requestMap portion is
+       synchronized such that only one method can add to the requestMap at a time. When accessing
+       wikipedia or the cache, since the text variable is local and immutable, it is also thread
+       safe and thus should return the right value.
 
-       getConnectedHops: this method is thread safe because we use synchronized blocks around the section that
-       accesses the requestMap. Since each thread will have its own function call stack, the recursive helper
-       is also thread-safe since each thread will have it's own call stack and local variables.
+       getConnectedHops: this method is thread safe because we use synchronized blocks around the
+       section that accesses the requestMap. Since each thread will have its own function call
+       stack, the recursive helper is also thread-safe since each thread will have it's own call
+       stack and local variables.
 
-       zeitgeist: this method is thread safe because we use synchronized blocks around the sections that
-       access the timeMap. Furthermore, while iterating over the timeMap, this section
-       is a critical section and thus is wrapped in a synchronized block. The variables within the zeitgeist
-       method themselves are threadsafe since each thread will have it's own local function variables
+       zeitgeist: this method is thread safe because we use synchronized blocks around the sections
+       that access the timeMap. Furthermore, while iterating over the timeMap, this section
+       is a critical section and thus is wrapped in a synchronized block. The variables within
+       the zeitgeist method themselves are threadsafe since each thread will have it's own local
+       function variables.
 
-       trending: this method is thread safe because we use synchronized blocks around the sections that
-       access the timeMap. Furthermore, while iterating over the timeMap, this section
-       is a critical section and thus is wrapped in a synchronized block to prevent other methods from
-       writing to the map. The variables within the trending method are thread safe since each thread will
-       have it's own local function variables
+       trending: this method is thread safe because we use synchronized blocks around the sections
+       that access the timeMap. Furthermore, while iterating over the timeMap, this section
+       is a critical section and thus is wrapped in a synchronized block to prevent other
+       methods from writing to the map. The variables within the trending method are thread safe
+       since each thread will have it's own local function variables.
 
-       peakLoad30s: this method is thread safe because we use synchronized blocks around the sections that
-       access the requestMap. Furthermore, while iterating over the intervals, this sectoin is wrapped in a
-       synchronized block and thus allows us to gain stats safely. The variables within the peakLoad30s are
-       thread safe since they are local variables.
+       peakLoad30s: this method is thread safe because we use synchronized blocks around the
+       sections that access the requestMap. Furthermore, while iterating over the intervals,
+       this section is wrapped in a synchronized block and thus allows us to gain stats safely.
+       The variables within the peakLoad30s are thread safe since they are local variables.
 
-       getPath: this method is thread safe because we use synchronized blocks around the section that accesses
-       the requestMap. Furthermore, the remaining variables used within the method are local variables and are
-       threadsafe types, thus are thread safe.
+       getPath: this method is thread safe because we use synchronized blocks around the section
+       that accesses the requestMap. Furthermore, the remaining variables used within the
+       method are local variables and are threadsafe types, thus are thread safe.
 
-       executeQuery: this method is thread safe because we use synchronized blocks are the section that accesses
-       the requestMap. Furthermore, any variables or methods called in executeQuery are thread safe because they
-       are local function calls in to a thread's own call stack.
+       executeQuery: this method is thread safe because we use synchronized blocks are the
+       section that accesses the requestMap. Furthermore, any variables or methods called
+       in executeQuery are thread safe because they are local function calls in to a thread's
+       own call stack.
 
        parse: this method is thread safe because we don't access any of the wikiMediator variables
-
-
      */
 
     /* Default Cache Capacity */
@@ -134,8 +139,8 @@ public class WikiMediator {
 
     /* The names of all methods in the WikiMediator Class */
     private final String[] methodNames =
-            new String[]{"simpleSearch", "getPage", "getConnectedPages",
-                    "zeitgeist", "trending", "peakLoad30s", "getPath", "executeQuery"};
+            new String[]{"simpleSearch", "getPage", "getConnectedPages", "zeitgeist",
+                    "trending", "peakLoad30s", "getPath", "executeQuery"};
 
     /* File names with which we save data to disc */
     private final String timeMapFile = "local/timeMapFile";
@@ -188,13 +193,14 @@ public class WikiMediator {
      * A simple search function that returns a list of pages that match the query string
      * @param query is not null and is a String to use with Wikipedia's search function
      * @param limit >= 0 is the maximum number of items that simpleSearch will return
-     * @modifies requestMap, adds a time the method was called into the request map (under "simpleSearch" key)
+     * @modifies requestMap, adds a time the method was called into the request map
+     * (under "simpleSearch" key)
      * @return  a list of strings with  size <= limit that appear from the query using
      * wikipedia's search service.
      * If limit is equal to 0, returns an empty list of strings
      */
     public List<String> simpleSearch(String query, int limit) {
-        synchronized(this) {
+        synchronized (this) {
             List<LocalDateTime> requestDates = this.requestMap.get("simpleSearch");
             requestDates.add(LocalDateTime.now());
             this.requestMap.replace("simpleSearch", requestDates);
@@ -215,7 +221,8 @@ public class WikiMediator {
      * Returns the page text of a given page title. If the page title has been requested already
      * the page text will be obtained from the cache instead of accessing wikipedia.
      * @param pageTitle is not null and is a page that we wish to find the wikipedia page for.
-     * @modifies requestMap, adds a time the method was called into the request map (under "getPage" key)
+     * @modifies requestMap, adds a time the method was called into the request map
+     * (under "getPage" key)
      * @return a string that contains the text of the given page title.
      * If page title is invalid, getPage follows the behaviour of the jWiki API
      */
@@ -265,7 +272,8 @@ public class WikiMediator {
      * Find a list of pages that are connected to the given page in a certain number of hops
      * @param pageTitle is not null and is the starting page
      * @param hops >= 0 and is the number of links that we jump through
-     * @modifies requestMap, adds a time the method was called into the request map (under "getConnectedPages" key)
+     * @modifies requestMap, adds a time the method was called into the request map
+     * (under "getConnectedPages" key)
      * @return A list of pages that are reachable within a certain number of hops from pageTitle.
      * This list contains no duplicate pages and thus, only returns a list of unique pages that can
      * be found through links from the initial pageTitle
@@ -322,7 +330,8 @@ public class WikiMediator {
     /**
      * Returns a list of the most common strings used in the simpleSearch and getPage methods
      * @param limit >= 0 and is the maximum number of items to return from the method call
-     * @modifies requestMap, adds a time the method was called into the request map (under "zeitgeist" key)
+     * @modifies requestMap, adds a time the method was called into the request map
+     * (under "zeitgeist" key)
      * @return a list of strings where strings are sorted by the amount of times they have been
      * called by the getPage or simple search method. These strings are sorted into non-increasing
      * order of appearance.
@@ -372,7 +381,8 @@ public class WikiMediator {
      * Returns a list of the most common Strings used in the getPage and simpleSearch method
      * from the past 30 seconds
      * @param limit >= 0 and is the maximum number of items to return from method call
-     * @modifies requestMap, adds a time the method was called into the request map (under "trending" key)
+     * @modifies requestMap, adds a time the method was called into the request map
+     * (under "trending" key)
      * @return a list of strings where strings are sorted by the amount of times they have been
      * called by the getPage or simple search method. These strings are sorted into non-increasing
      * order of appearance.
@@ -436,7 +446,8 @@ public class WikiMediator {
     /**
      * Returns the maximum number of requests in any 30 second interval during the duration of
      * an instance of WikiMediator
-     * @modifies requestMap, adds a time the method was called into the request map (under "peakLoad30s" key)
+     * @modifies requestMap, adds a time the method was called into the request map
+     * (under "peakLoad30s" key)
      * @return the maximum number of request in any 30 second interval.
      * The return value will always be >= 1 since we consider the method call of peakLoad30s
      * to be within the last 30 seconds
@@ -490,8 +501,10 @@ public class WikiMediator {
     }
 
     /* Task 2 */
+
     /* Source: https://stackoverflow.com/questions/4738162/
-    java-writing-reading-a-map-from-disk?fbclid=IwAR2k5WIuXOANDQXbHI56WU9wEb3wrR0_uCy6AWj9026Pzsn_D8GK1DLyEx0
+    java-writing-reading-a-map-from-disk?
+    fbclid=IwAR2k5WIuXOANDQXbHI56WU9wEb3wrR0_uCy6AWj9026Pzsn_D8GK1DLyEx0
     */
 
     /**
@@ -505,7 +518,7 @@ public class WikiMediator {
             oos.writeObject(this.startTime);
             oos.close();
 
-        } catch(Exception e){
+        } catch (IOException e) {
             System.out.println("Could not write to file");
         }
 
@@ -521,7 +534,7 @@ public class WikiMediator {
             oos.writeObject(this.requestMap);
             oos.close();
 
-        } catch(Exception e){
+        } catch (IOException e) {
             System.out.println("Could not write to file");
         }
 
@@ -537,7 +550,7 @@ public class WikiMediator {
             oos.writeObject(this.startTime);
             oos.close();
 
-        } catch(Exception e){
+        } catch (IOException e) {
             System.out.println("Could not write to file");
         }
 
@@ -554,7 +567,7 @@ public class WikiMediator {
             this.startTime = (LocalDateTime) ois.readObject();
             ois.close();
 
-        } catch(Exception e){
+        } catch (IOException | ClassNotFoundException e) {
             System.out.println("Could not load file");
         }
 
@@ -571,7 +584,7 @@ public class WikiMediator {
             this.requestMap = (Map) ois.readObject();
             ois.close();
 
-        } catch(Exception e){
+        } catch (IOException | ClassNotFoundException e) {
             System.out.println("Could not load file");
         }
 
@@ -587,7 +600,7 @@ public class WikiMediator {
             this.timeMap = (Map) ois.readObject();
             ois.close();
 
-        } catch(Exception e){
+        } catch (IOException | ClassNotFoundException e) {
             System.out.println("Could not load file");
         }
 
@@ -687,7 +700,7 @@ public class WikiMediator {
 
         try {
             queryList = this.parse(query);
-        } catch(InvalidQueryException e) {
+        } catch (InvalidQueryException e) {
             System.out.println("Error parsing query.");
             return new ArrayList<>();
         }
@@ -701,7 +714,7 @@ public class WikiMediator {
      * @return a list of strings that match the query in wikipedia
      * @throws InvalidQueryException if query is invalid according to grammar
      */
-    public List<String> parse (String query) throws InvalidQueryException {
+    public List<String> parse(String query) throws InvalidQueryException {
         CharStream stream = new ANTLRInputStream(query);
         QueryLexer lexer = new QueryLexer(stream);
         lexer.reportErrorsAsExceptions();
@@ -740,7 +753,7 @@ public class WikiMediator {
         Stack<String> results = new Stack<>();
         List<String> seenList = new ArrayList<>();
         List<String> queryList = new ArrayList<>();
-        Wiki wiki = new Wiki ("en.wikipedia.org");
+        Wiki wiki = new Wiki("en.wikipedia.org");
 
         /**
          * Based on the condition, adds the appropriate argument to the results stack
@@ -809,6 +822,7 @@ public class WikiMediator {
                 }
 
                 if (ctx.OR() != null) {
+                    // if the previous condition was and, want to compare queries
                     if (andFlag) {
                         andFlag = false;
                         orFlag = true;
@@ -816,16 +830,19 @@ public class WikiMediator {
 
 
                     }  else if (orFlag) {
+                        // if the previous condtion was or, want to add all queries
                         orFlag = false;
                         while (!results.isEmpty() && !results.peek().equals("")) {
                             queryList.add(results.pop());
                         }
 
                     } else {
+                        // set the orFlag to true so we know we need to or everything
                         orFlag = true;
                     }
                 } else {
                     if (orFlag) {
+                        //if the previous condition was or, want to add all queries to seenList
                         orFlag = false;
                         andFlag = true;
                         if (!checkAuthors) {
@@ -838,10 +855,12 @@ public class WikiMediator {
                         }
 
                     } else if (andFlag) {
+                        // if the previous condition was and, want to compare queries
                         andFlag = false;
                         setCheckAuthors();
 
                     } else {
+                        //set andFlag to true, add stuff to seen List
                         andFlag = true;
                         while (!results.isEmpty() && !results.peek().equals("")) {
                             if (!checkAuthors) {
@@ -879,7 +898,8 @@ public class WikiMediator {
                     if (!checkQuery.equals("")) {
                         if (checkAuthors) {
                             String editor = wiki.getLastEditor(checkQuery);
-                            if (wiki.exists(checkQuery) && (seenList.contains(editor) || author.equals(editor))) {
+                            if (wiki.exists(checkQuery)
+                                    && (seenList.contains(editor) || author.equals(editor))) {
                                 queryList.add(checkQuery);
                             } else if (checkQuery.equals(author)) {
                                 queryList.add(checkQuery);
@@ -930,7 +950,9 @@ public class WikiMediator {
          * @return queryList, a list of string that match the users query
          *                    returns an empty list if no suitable strings
          */
-        public List<String> getQueries() { return queryList; }
+        public List<String> getQueries() {
+            return queryList;
+        }
 
 
         /**
@@ -939,7 +961,7 @@ public class WikiMediator {
          * @modifies queryList, adds appropriate arguments if they fit the query
          * @modifies seenList, adds appropriate arguments if seen
          */
-        private void setCheckAuthors () {
+        private void setCheckAuthors() {
             while (!results.isEmpty() && !results.peek().equals("")) {
                 String checkQuery = results.pop();
                 if (checkAuthors) {
