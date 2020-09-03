@@ -1,13 +1,1 @@
-**MP3 / CPEN 221 / Fall 2019**
-
-# Wikipedia and Graph Databases
-
-This mini-project involves interacting with Wikipedia and performing many operations.
-
-Some of the learning goals for this mini-project are:
-
-* Working with external libraries (such as `jwiki` ,`gson`, and `antler`);
-* Implementing reusable datatypes such as `Cache`;
-* Using multi-threading to handle certain aspects of the implementation;
-* Managing shared memory when multiple threads are involved;
-* Implementing parsers for a given grammar and executing queries on a database.
+For this project, we worked with the jWiki API to do several operations with Wikipedia and attempt to re-create the wikiladders game with a BFS algorithm. We also created a generic cache datatype that allowed multiple clients to connect with our server and show off multithreading capabilities.
